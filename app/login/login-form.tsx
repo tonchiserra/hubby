@@ -76,7 +76,7 @@ export function LoginForm({ next }: { next?: string }) {
       </Button>
 
       {error && (
-        <p role="alert" className="text-footnote text-negative px-1">
+        <p role="alert" className="text-footnote text-destructive px-1">
           {error}
         </p>
       )}

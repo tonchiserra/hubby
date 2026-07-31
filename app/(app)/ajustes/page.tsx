@@ -41,7 +41,7 @@ export default async function SettingsPage() {
       </ListGroup>
 
       <form action={signOut}>
-        <Button type="submit" variant="plain" className="text-negative" block>
+        <Button type="submit" variant="plain" className="text-destructive" block>
           <SignOutIcon size={20} />
           Cerrar sesión
         </Button>

@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
   return (
-    <aside className="border-border hidden w-60 shrink-0 border-r px-3 py-6 md:block">
+    <aside className="border-separator hidden w-60 shrink-0 border-r px-3 py-6 md:block">
       <Link href="/" className="mb-6 flex items-center gap-2 px-3">
         <span className="text-title3">hubby</span>
       </Link>
@@ -41,10 +41,10 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
               href={href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-h-touch items-center gap-3 rounded-lg px-3 text-callout transition-colors",
+                "flex min-h-touch items-center gap-3 rounded-md px-3 text-callout transition-colors",
                 active
-                  ? "bg-accent text-accent-foreground font-medium"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  ? "bg-fill-tertiary text-primary font-medium"
+                  : "text-muted-foreground hover:bg-fill-tertiary hover:text-foreground",
               )}
             >
               <Icon size={22} weight={active ? "fill" : "regular"} />

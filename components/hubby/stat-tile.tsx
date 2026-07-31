@@ -18,15 +18,15 @@ export function StatTile({
   className?: string;
 }) {
   return (
-    <div className={cn("bg-card flex flex-col gap-1 rounded-xl p-4", className)}>
-      <span className="text-caption text-muted-foreground uppercase tracking-wide">
+    <div className={cn("bg-card flex flex-col gap-0.5 rounded-md p-4", className)}>
+      <span className="text-caption2 text-muted-foreground uppercase">
         {label}
       </span>
       <span
         className={cn(
-          "text-title1 font-mono tabular-nums",
+          "text-title1 tabular-nums -tracking-[0.01em]",
           tone === "positive" && "text-positive",
-          tone === "negative" && "text-negative",
+          tone === "negative" && "text-destructive",
         )}
       >
         {value}

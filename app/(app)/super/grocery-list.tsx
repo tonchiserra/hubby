@@ -1,30 +1,19 @@
 "use client";
 
 import { useOptimistic, useRef, useState, useTransition } from "react";
-import {
-  MinusIcon,
-  PlusIcon,
-  ShoppingCartIcon,
-  TrashIcon,
-} from "@phosphor-icons/react/dist/ssr";
+import { PlusCircleIcon, ShoppingCartIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InlineInput } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ListGroup, ListRow } from "@/components/hubby/list";
+import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
 import type { GroceryItem } from "@/lib/supabase/types";
-import {
-  addItem,
-  clearDone,
-  deleteItem,
-  setQuantity,
-  toggleItem,
-} from "./actions";
+import { addItem, clearDone, deleteItem, toggleItem } from "./actions";
 
 type Patch =
   | { type: "toggle"; id: string; done: boolean }
-  | { type: "quantity"; id: string; quantity: number }
   | { type: "delete"; id: string }
   | { type: "clearDone" };
 
@@ -34,10 +23,6 @@ function apply(items: GroceryItem[], patch: Patch): GroceryItem[] {
       return items.map((i) =>
         i.id === patch.id ? { ...i, done: patch.done } : i,
       );
-    case "quantity":
-      return items.map((i) =>
-        i.id === patch.id ? { ...i, quantity: patch.quantity } : i,
-      );
     case "delete":
       return items.filter((i) => i.id !== patch.id);
     case "clearDone":
@@ -46,8 +31,6 @@ function apply(items: GroceryItem[], patch: Patch): GroceryItem[] {
 }
 
 export function GroceryList({ items }: { items: GroceryItem[] }) {
-  // El estado optimista hace que marcar un ítem se sienta instantáneo; React
-  // lo revierte solo si la acción del servidor falla.
   const [shown, addPatch] = useOptimistic(items, apply);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -66,8 +49,7 @@ export function GroceryList({ items }: { items: GroceryItem[] }) {
 
   async function onAdd(formData: FormData) {
     setError(null);
-    // Se limpia antes de esperar al servidor: si algo falla, el mensaje de
-    // error alcanza para entenderlo, y así se pueden cargar ítems seguidos.
+    // Se limpia antes de esperar al servidor para poder cargar varios seguidos.
     formRef.current?.reset();
     inputRef.current?.focus();
     const res = await addItem(formData);
@@ -75,33 +57,45 @@ export function GroceryList({ items }: { items: GroceryItem[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <form ref={formRef} action={onAdd} className="flex gap-2">
-        <Input
-          ref={inputRef}
-          name="name"
-          placeholder="Agregar al carrito…"
-          autoComplete="off"
-          aria-label="Nombre del ítem"
-          maxLength={120}
-          required
-        />
-        <Input
-          name="quantity"
-          type="number"
-          inputMode="numeric"
-          defaultValue={1}
-          min={1}
-          aria-label="Cantidad"
-          className="w-16 shrink-0 px-0 text-center font-mono"
-        />
-        <Button type="submit" size="icon" aria-label="Agregar">
-          <PlusIcon size={22} weight="bold" />
-        </Button>
-      </form>
+    <div className="flex flex-col gap-8">
+      {/* El alta es una fila más de la lista, como en Recordatorios, en vez de
+          un formulario web arriba de todo. */}
+      <ListGroup>
+        <form ref={formRef} action={onAdd}>
+          <ListRow
+            last
+            leading={<PlusCircleIcon size={22} className="text-primary" />}
+            label={
+              <InlineInput
+                ref={inputRef}
+                name="name"
+                placeholder="Agregar al carrito"
+                autoComplete="off"
+                aria-label="Nombre del ítem"
+                maxLength={120}
+                required
+              />
+            }
+            trailing={
+              <input
+                name="quantity"
+                type="number"
+                inputMode="numeric"
+                defaultValue={1}
+                min={1}
+                aria-label="Cantidad"
+                className="text-body text-muted-foreground w-10 bg-transparent text-right tabular-nums focus:outline-none"
+              />
+            }
+          />
+          <button type="submit" className="sr-only">
+            Agregar
+          </button>
+        </form>
+      </ListGroup>
 
       {error && (
-        <p role="alert" className="text-footnote text-negative -mt-3 px-1">
+        <p role="alert" className="text-footnote text-destructive -mt-6 px-4">
           {error}
         </p>
       )}
@@ -110,54 +104,56 @@ export function GroceryList({ items }: { items: GroceryItem[] }) {
         <EmptyState
           icon={ShoppingCartIcon}
           title="Lista vacía"
-          description="Agregá lo primero que se te ocurra que falta en casa."
+          description="Agregá lo primero que falte en casa."
         />
       )}
 
       {pending.length > 0 && (
-        <ListGroup title={`Pendientes · ${pending.length}`}>
-          {pending.map((item) => (
-            <ListRow
+        <ListGroup
+          title="Pendientes"
+          footer="Deslizá una fila hacia la izquierda para borrarla."
+        >
+          {pending.map((item, i) => (
+            <SwipeRow
               key={item.id}
-              leading={
-                <Checkbox
-                  checked={item.done}
-                  aria-label={`Marcar ${item.name} como comprado`}
-                  onCheckedChange={(v) =>
-                    run({ type: "toggle", id: item.id, done: v === true }, () =>
-                      toggleItem(item.id, v === true),
-                    )
-                  }
-                />
+              deleteLabel={`Borrar ${item.name}`}
+              onDelete={() =>
+                run({ type: "delete", id: item.id }, () => deleteItem(item.id))
               }
-              label={item.name}
-              trailing={
-                <Stepper
-                  quantity={item.quantity}
-                  name={item.name}
-                  onChange={(q) =>
-                    run({ type: "quantity", id: item.id, quantity: q }, () =>
-                      setQuantity(item.id, q),
-                    )
-                  }
-                  onDelete={() =>
-                    run({ type: "delete", id: item.id }, () =>
-                      deleteItem(item.id),
-                    )
-                  }
-                />
-              }
-            />
+            >
+              <ListRow
+                last={i === pending.length - 1}
+                leading={
+                  <Checkbox
+                    checked={item.done}
+                    aria-label={`Marcar ${item.name} como comprado`}
+                    onCheckedChange={(v) =>
+                      run({ type: "toggle", id: item.id, done: v === true }, () =>
+                        toggleItem(item.id, v === true),
+                      )
+                    }
+                  />
+                }
+                label={item.name}
+                trailing={item.quantity > 1 ? `${item.quantity}` : undefined}
+              />
+            </SwipeRow>
           ))}
         </ListGroup>
       )}
 
       {done.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <ListGroup title={`Comprados · ${done.length}`}>
-            {done.map((item) => (
+        <ListGroup title={`Comprados · ${done.length}`}>
+          {done.map((item, i) => (
+            <SwipeRow
+              key={item.id}
+              deleteLabel={`Borrar ${item.name}`}
+              onDelete={() =>
+                run({ type: "delete", id: item.id }, () => deleteItem(item.id))
+              }
+            >
               <ListRow
-                key={item.id}
+                last={i === done.length - 1}
                 leading={
                   <Checkbox
                     checked
@@ -170,66 +166,24 @@ export function GroceryList({ items }: { items: GroceryItem[] }) {
                   />
                 }
                 label={
-                  <span className="text-muted-foreground line-through">
-                    {item.name}
-                  </span>
+                  <span className="text-muted-foreground">{item.name}</span>
                 }
-                trailing={
-                  <span className="font-mono tabular-nums">×{item.quantity}</span>
-                }
+                trailing={item.quantity > 1 ? `${item.quantity}` : undefined}
               />
-            ))}
-          </ListGroup>
-          <Button
-            variant="plain"
-            size="sm"
-            className="text-negative self-start"
-            onClick={() =>
-              run({ type: "clearDone" }, () => clearDone())
-            }
-          >
-            <TrashIcon size={16} />
-            Limpiar comprados
-          </Button>
-        </div>
+            </SwipeRow>
+          ))}
+        </ListGroup>
       )}
-    </div>
-  );
-}
 
-function Stepper({
-  quantity,
-  name,
-  onChange,
-  onDelete,
-}: {
-  quantity: number;
-  name: string;
-  onChange: (q: number) => void;
-  onDelete: () => void;
-}) {
-  // Bajar de 1 borra el ítem: es el gesto natural y evita un botón extra.
-  const decrease = () => (quantity <= 1 ? onDelete() : onChange(quantity - 1));
-
-  return (
-    <div className="flex items-center gap-1">
-      <button
-        type="button"
-        onClick={decrease}
-        aria-label={quantity <= 1 ? `Quitar ${name}` : `Menos ${name}`}
-        className="text-muted-foreground hover:text-foreground grid size-8 place-items-center rounded-full transition-colors active:scale-90"
-      >
-        {quantity <= 1 ? <TrashIcon size={16} /> : <MinusIcon size={16} />}
-      </button>
-      <span className="w-5 text-center font-mono tabular-nums">{quantity}</span>
-      <button
-        type="button"
-        onClick={() => onChange(quantity + 1)}
-        aria-label={`Más ${name}`}
-        className="text-muted-foreground hover:text-foreground grid size-8 place-items-center rounded-full transition-colors active:scale-90"
-      >
-        <PlusIcon size={16} />
-      </button>
+      {done.length > 0 && (
+        <Button
+          variant="plain"
+          className="text-destructive self-center"
+          onClick={() => run({ type: "clearDone" }, () => clearDone())}
+        >
+          Borrar los comprados
+        </Button>
+      )}
     </div>
   );
 }

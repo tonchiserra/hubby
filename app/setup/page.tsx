@@ -42,8 +42,8 @@ export default function SetupPage() {
 
       <ol className="flex flex-col gap-3">
         {STEPS.map((step, i) => (
-          <li key={step.title} className="bg-card flex gap-3 rounded-xl p-4">
-            <span className="bg-accent text-accent-foreground grid size-6 shrink-0 place-items-center rounded-full font-mono text-caption font-medium">
+          <li key={step.title} className="bg-card flex gap-3 rounded-md p-4">
+            <span className="bg-fill-tertiary text-primary grid size-6 shrink-0 place-items-center rounded-full text-caption font-semibold">
               {i + 1}
             </span>
             <div className="flex flex-col gap-0.5">

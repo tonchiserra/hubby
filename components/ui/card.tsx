@@ -1,20 +1,17 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Superficie elevada. La jerarquía sale del contraste contra --background,
- * no de una sombra: es el patrón de "grouped background" de iOS.
+ * Superficie agrupada de iOS. La jerarquía sale del contraste contra
+ * --background, no de una sombra.
  */
 export function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      className={cn("bg-card text-card-foreground rounded-xl", className)}
-      {...props}
-    />
+    <div className={cn("bg-card rounded-md", className)} {...props} />
   );
 }
 
 export function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("px-4 pt-4 pb-2", className)} {...props} />;
+  return <div className={cn("px-4 pt-3.5 pb-1", className)} {...props} />;
 }
 
 export function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
@@ -34,5 +31,5 @@ export function CardDescription({
 }
 
 export function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("px-4 pb-4", className)} {...props} />;
+  return <div className={cn("px-4 pb-3.5", className)} {...props} />;
 }

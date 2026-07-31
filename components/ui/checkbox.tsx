@@ -1,12 +1,12 @@
 "use client";
 
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
-import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircleIcon, CircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 /**
- * Círculo relleno al marcar, como los checklists de Recordatorios de iOS —
- * en vez del cuadrado con tilde que usa la web por convención.
+ * Círculo de Recordatorios: contorno fino cuando está vacío, círculo relleno
+ * con tilde al marcarse. No es el cuadrado con tilde de la web.
  */
 export function Checkbox({
   className,
@@ -15,18 +15,24 @@ export function Checkbox({
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "peer size-6 shrink-0 rounded-full border-2 border-input",
-        "grid place-items-center transition-colors duration-150",
-        "data-[state=checked]:border-primary data-[state=checked]:bg-primary",
-        "focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2",
+        "group grid size-6 shrink-0 place-items-center rounded-full",
+        "transition-transform active:scale-90",
+        "focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2",
         "disabled:opacity-40",
         className,
       )}
       {...props}
     >
-      <CheckboxPrimitive.Indicator className="text-primary-foreground">
-        <CheckIcon size={14} weight="bold" />
-      </CheckboxPrimitive.Indicator>
+      <CircleIcon
+        size={24}
+        weight="regular"
+        className="text-subtle-foreground group-data-[state=checked]:hidden"
+      />
+      <CheckCircleIcon
+        size={24}
+        weight="fill"
+        className="text-primary hidden group-data-[state=checked]:block"
+      />
     </CheckboxPrimitive.Root>
   );
 }

@@ -1,115 +1,114 @@
 @import "tailwindcss";
 
-/* Escalas crudas de Radix Colors (MIT). Se importan en vez de transcribirse:
-   sus selectores :root / .dark encajan con la estrategia de clase de next-themes,
-   y así los valores nunca quedan desactualizados respecto del paquete. */
-@import "@radix-ui/colors/sand.css";
-@import "@radix-ui/colors/sand-dark.css";
-@import "@radix-ui/colors/sand-alpha.css";
-@import "@radix-ui/colors/sand-dark-alpha.css";
-@import "@radix-ui/colors/jade.css";
-@import "@radix-ui/colors/jade-dark.css";
-@import "@radix-ui/colors/tomato.css";
-@import "@radix-ui/colors/tomato-dark.css";
-
-/* Modo oscuro por clase, no por prefers-color-scheme: next-themes necesita
-   poder forzarlo desde el toggle. */
+/* Modo oscuro por clase: next-themes necesita poder forzarlo desde el toggle. */
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
-   Capa semántica
+   Colores del sistema de iOS
    ---------------------------------------------------------------------------
-   Las escalas de Radix ya intercambian sus propios valores al entrar .dark,
-   así que la mayoría de estos tokens no necesita override: --sand-12 es oscuro
-   en claro y claro en oscuro. Solo se redefinen abajo los que usan un PASO
-   distinto según el modo.
+   Valores canónicos de Apple. No se usa una paleta genérica a propósito: el
+   tinte frío de los grises de iOS -tiran a azul, no a tierra- es la mitad de
+   lo que hace que una interfaz "se sienta" de Apple.
+
+   Los labels y separadores son translúcidos por diseño, igual que en iOS: así
+   funcionan igual sobre una tarjeta, sobre la página o sobre una superficie
+   con blur.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Superficies. Patrón "grouped background" de iOS: la página es más oscura
-     que las tarjetas. Es una desviación deliberada de la guía de Radix (que
-     sugiere el paso 1 para el fondo de app) y es lo que produce la sensación
-     de capas sin recurrir a sombras. */
-  --background: var(--sand-3);
-  --foreground: var(--sand-12);
-  --card: var(--sand-1);
-  --card-foreground: var(--sand-12);
-  --popover: var(--sand-1);
-  --popover-foreground: var(--sand-12);
+  /* Fondos agrupados. La página es más oscura que las tarjetas: es el patrón
+     "inset grouped" de iOS y de ahí sale la jerarquía, sin sombras. */
+  --background: #f2f2f7;          /* systemGroupedBackground */
+  --card: #ffffff;                /* secondarySystemGroupedBackground */
+  --card-elevated: #f2f2f7;       /* tertiarySystemGroupedBackground */
 
-  /* Neutros de apoyo */
-  --muted: var(--sand-4);
-  --muted-foreground: var(--sand-11);
-  --secondary: var(--sand-4);
-  --secondary-foreground: var(--sand-12);
+  --foreground: #000000;                      /* label */
+  --muted-foreground: rgb(60 60 67 / 0.60);   /* secondaryLabel */
+  --subtle-foreground: rgb(60 60 67 / 0.30);  /* tertiaryLabel */
 
-  /* Bordes translúcidos: al ser alpha, el hairline funciona igual sobre la
-     página, sobre una tarjeta o sobre una superficie con blur. */
-  --border: var(--sand-a6);
-  --separator: var(--sand-a5);
-  --input: var(--sand-a7);
+  --separator: rgb(60 60 67 / 0.29);
+  --separator-opaque: #c6c6c8;
 
-  /* Acento único de marca */
-  --primary: var(--jade-9);
-  --primary-hover: var(--jade-10);
+  --fill: rgb(120 120 128 / 0.20);            /* systemFill */
+  --fill-secondary: rgb(120 120 128 / 0.16);
+  --fill-tertiary: rgb(118 118 128 / 0.12);
+
+  --primary: #007aff;                          /* systemBlue */
   --primary-foreground: #ffffff;
-  --accent: var(--jade-3);
-  --accent-foreground: var(--jade-11);
-  --ring: var(--jade-8);
+  --destructive: #ff3b30;                      /* systemRed */
+  --positive: #34c759;                         /* systemGreen */
+  --warning: #ff9500;                          /* systemOrange */
 
-  /* Estados */
-  --destructive: var(--tomato-9);
-  --destructive-foreground: #ffffff;
-  --positive: var(--jade-11);
-  --negative: var(--tomato-11);
+  /* Cristal de la tab bar y los headers de sheets. */
+  --glass: rgb(249 249 249 / 0.82);
+  --glass-border: rgb(60 60 67 / 0.29);
 
-  /* Cristal (tab bar, headers de sheets). Deliberadamente acotado: backdrop-filter
-     sobre superficies que scrollean cuesta frames en Safari móvil. */
-  --glass: color-mix(in srgb, var(--sand-1) 72%, transparent);
-  --glass-border: var(--sand-a6);
+  /* Los hairlines de iOS son un píxel físico, no un píxel CSS: en pantallas
+     retina eso es 1/2 o 1/3. Se resuelve escalando un pseudo-elemento. */
+  --dpr: 1;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  :root { --dpr: 2; }
+}
+@media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 288dpi) {
+  :root { --dpr: 3; }
 }
 
 .dark {
-  --background: var(--sand-1);
-  --card: var(--sand-2);
-  --popover: var(--sand-3);
-  --glass: color-mix(in srgb, var(--sand-2) 72%, transparent);
+  --background: #000000;
+  --card: #1c1c1e;
+  --card-elevated: #2c2c2e;
+
+  --foreground: #ffffff;
+  --muted-foreground: rgb(235 235 245 / 0.60);
+  --subtle-foreground: rgb(235 235 245 / 0.30);
+
+  --separator: rgb(84 84 88 / 0.65);
+  --separator-opaque: #38383a;
+
+  --fill: rgb(120 120 128 / 0.36);
+  --fill-secondary: rgb(120 120 128 / 0.32);
+  --fill-tertiary: rgb(118 118 128 / 0.24);
+
+  --primary: #0a84ff;
+  --destructive: #ff453a;
+  --positive: #30d158;
+  --warning: #ff9f0a;
+
+  --glass: rgb(30 30 30 / 0.82);
+  --glass-border: rgb(84 84 88 / 0.65);
 }
 
 @theme inline {
-  /* --- Color ------------------------------------------------------------ */
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-muted: var(--muted);
+  --color-card-elevated: var(--card-elevated);
+  --color-foreground: var(--foreground);
   --color-muted-foreground: var(--muted-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-border: var(--border);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-separator: var(--separator);
-  --color-input: var(--input);
+  --color-separator-opaque: var(--separator-opaque);
+  --color-fill: var(--fill);
+  --color-fill-secondary: var(--fill-secondary);
+  --color-fill-tertiary: var(--fill-tertiary);
   --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-ring: var(--ring);
   --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-positive: var(--positive);
-  --color-negative: var(--negative);
+  --color-warning: var(--warning);
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
 
-  /* --- Tipografía -------------------------------------------------------- */
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-gs-code), ui-monospace, "SF Mono", monospace;
+  /* --- Tipografía --------------------------------------------------------
+     Sin webfonts. En Mac y iPhone esto resuelve a la San Francisco real que
+     renderiza el sistema: cero bytes, cero licencia y exacto por definición.
+     Ninguna fuente descargable puede igualar eso. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
-  /* Escala derivada de los tamaños de Dynamic Type de iOS. El rango ancho
-     -de 11px a 34px- es lo que da jerarquía por tamaño en vez de por color. */
+  /* Tamaños de Dynamic Type de iOS, en su escala por defecto. */
   --text-caption2: 0.6875rem;
   --text-caption2--line-height: 0.8125rem;
   --text-caption: 0.75rem;
@@ -127,10 +126,9 @@
   --text-headline--font-weight: 600;
   --text-title3: 1.25rem;
   --text-title3--line-height: 1.5625rem;
-  --text-title3--font-weight: 600;
   --text-title2: 1.375rem;
   --text-title2--line-height: 1.75rem;
-  --text-title2--font-weight: 600;
+  --text-title2--font-weight: 700;
   --text-title1: 1.75rem;
   --text-title1--line-height: 2.125rem;
   --text-title1--font-weight: 700;
@@ -138,46 +136,58 @@
   --text-largetitle--line-height: 2.5625rem;
   --text-largetitle--font-weight: 700;
 
-  /* --- Radios ------------------------------------------------------------ */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.375rem;
-  --radius-2xl: 1.75rem;
+  /* Radios de iOS: las listas agrupadas usan 10pt. Los 22px de antes hacían
+     que las tarjetas se leyeran como pastillas. */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
 
-  /* --- Alturas mínimas de target táctil ---------------------------------- */
   --spacing-touch: 2.75rem;
+  /* Indentación del separador: arranca donde arranca el texto, no en el borde
+     de la tarjeta. Es de los detalles más reconocibles de iOS. */
+  --spacing-inset: 1rem;
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   html {
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground font-sans text-body antialiased;
-    /* Evita el rebote de scroll que rompe la ilusión de app nativa en iOS */
     overscroll-behavior-y: none;
   }
 
-  /* El foco visible solo aparece para navegación por teclado, no al tocar. */
   :focus-visible {
-    @apply outline-ring outline-2 outline-offset-2;
+    @apply outline-primary outline-2 outline-offset-2;
+  }
+
+  /* Las cifras nunca bailan al actualizarse. */
+  :where(output, [data-numeric]) {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @utility hairline-b {
-  /* Separador de medio píxel, el patrón de listas de iOS. En pantallas no-retina
-     el navegador lo redondea a 1px, que es el comportamiento correcto. */
-  border-bottom: 0.5px solid var(--separator);
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    left: var(--hairline-inset, 0);
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background-color: var(--separator);
+    /* Un píxel físico real: en retina se ve tan fino como en iOS. */
+    transform: scaleY(calc(1 / var(--dpr)));
+    transform-origin: bottom;
+  }
 }
 
 @utility glass {
   background-color: var(--glass);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }

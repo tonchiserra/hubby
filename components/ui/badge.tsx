@@ -2,21 +2,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badge = cva(
-  "inline-flex items-center gap-1 rounded-full font-medium whitespace-nowrap",
+  "inline-flex items-center justify-center rounded-full font-semibold tabular-nums",
   {
     variants: {
       variant: {
-        neutral: "bg-secondary text-muted-foreground",
-        accent: "bg-accent text-accent-foreground",
-        positive: "bg-accent text-positive",
-        negative: "bg-destructive/12 text-negative",
+        /** Contador de iOS: círculo relleno, como los badges de la tab bar. */
+        count: "bg-fill text-muted-foreground",
+        primary: "bg-primary text-primary-foreground",
+        destructive: "bg-destructive text-primary-foreground",
       },
       size: {
-        sm: "h-5 px-2 text-caption2",
-        md: "h-6 px-2.5 text-caption",
+        sm: "min-w-5 h-5 px-1.5 text-caption2",
+        md: "min-w-6 h-6 px-2 text-caption",
       },
     },
-    defaultVariants: { variant: "neutral", size: "md" },
+    defaultVariants: { variant: "count", size: "md" },
   },
 );
 

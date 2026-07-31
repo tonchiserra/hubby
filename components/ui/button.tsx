@@ -7,34 +7,33 @@ import { cn } from "@/lib/utils";
 const button = cva(
   [
     "inline-flex items-center justify-center gap-2 shrink-0",
-    "font-medium whitespace-nowrap select-none",
-    "transition-[background-color,opacity,transform] duration-150",
-    // Escala al presionar: es lo que da la sensación táctil de iOS.
-    "active:scale-[0.97]",
+    "whitespace-nowrap select-none",
+    "transition-[opacity,transform] duration-150",
+    // iOS no oscurece al presionar: baja la opacidad y encoge apenas.
+    "active:opacity-60 active:scale-[0.98]",
     "disabled:pointer-events-none disabled:opacity-40",
     "[&_svg]:shrink-0 [&_svg]:pointer-events-none",
   ],
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-primary-hover",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-muted",
-        ghost: "text-primary hover:bg-accent",
-        plain: "text-foreground hover:bg-secondary",
-        destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
+        /** Botón lleno de iOS: capsular, azul de sistema. */
+        filled: "bg-primary text-primary-foreground font-semibold rounded-full",
+        /** Gris translúcido, sobre tarjeta o sobre fondo. */
+        tinted: "bg-fill-tertiary text-primary font-semibold rounded-full",
+        /** Solo texto: el estilo por defecto de las acciones en iOS. */
+        plain: "text-primary",
+        destructive: "text-destructive",
       },
       size: {
-        // 44px es el target táctil mínimo de iOS. sm/icon lo respetan igual.
-        sm: "h-9 px-3 text-subhead rounded-md",
-        md: "h-touch px-5 text-headline rounded-lg",
-        lg: "h-13 px-6 text-headline rounded-xl",
+        sm: "h-8 px-3 text-subhead",
+        md: "h-touch px-5 text-body",
+        lg: "h-13 px-6 text-headline",
         icon: "size-touch rounded-full",
       },
-      block: {
-        true: "w-full",
-      },
+      block: { true: "w-full" },
     },
-    defaultVariants: { variant: "primary", size: "md" },
+    defaultVariants: { variant: "filled", size: "md" },
   },
 );
 

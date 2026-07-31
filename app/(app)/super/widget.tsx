@@ -25,7 +25,7 @@ export async function GroceryWidget() {
               : `${pending} pendiente${pending === 1 ? "" : "s"}`
         }
         trailing={
-          pending > 0 ? <Badge variant="accent">{pending}</Badge> : undefined
+          pending > 0 ? <Badge variant="primary">{pending}</Badge> : undefined
         }
       />
     </Link>

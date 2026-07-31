@@ -47,20 +47,6 @@ export async function toggleItem(id: string, done: boolean) {
   return {};
 }
 
-export async function setQuantity(id: string, quantity: number) {
-  if (!Number.isInteger(quantity) || quantity < 1) {
-    return { error: "Cantidad inválida." };
-  }
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("grocery_items")
-    .update({ quantity })
-    .eq("id", id);
-
-  if (error) return { error: "No se pudo actualizar la cantidad." };
-  revalidate();
-  return {};
-}
 
 export async function deleteItem(id: string) {
   const supabase = await createClient();

@@ -10,10 +10,10 @@ import { MODULE_WIDGETS } from "@/lib/modules/widgets";
 function WidgetSkeleton() {
   return (
     <div className="flex min-h-touch items-center gap-3 px-4 py-2.5">
-      <div className="bg-muted size-6 animate-pulse rounded-full" />
+      <div className="bg-fill-tertiary size-6 animate-pulse rounded-full" />
       <div className="flex flex-1 flex-col gap-1.5">
-        <div className="bg-muted h-4 w-32 animate-pulse rounded" />
-        <div className="bg-muted h-3 w-20 animate-pulse rounded" />
+        <div className="bg-fill-tertiary h-4 w-32 animate-pulse rounded" />
+        <div className="bg-fill-tertiary h-3 w-20 animate-pulse rounded" />
       </div>
     </div>
   );

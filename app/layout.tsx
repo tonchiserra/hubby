@@ -1,23 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Google_Sans_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-// next/font descarga en build time y self-hostea: sin request a Google en
-// runtime, sin DNS extra y sin layout shift.
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-// Google Sans Code es lo único de la familia Google Sans con licencia abierta
-// (OFL). Monoespaciada, reservada para cifras: PnL, cantidades, importes.
-const gsCode = Google_Sans_Code({
-  variable: "--font-gs-code",
-  subsets: ["latin"],
-  display: "swap",
-});
+// Sin webfonts a propósito: el stack de sistema resuelve a la San Francisco
+// real en Mac y iPhone. Cero bytes, cero requests y exacto por definición.
 
 export const metadata: Metadata = {
   title: {
@@ -34,10 +20,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Valor inicial fijo: la app arranca en claro sin importar la preferencia del
-  // SO. A partir de ahí, ThemeColorSync lo actualiza según el tema elegido.
-  themeColor: "#f1f0ef",
-  // La app se instala como PWA: sin zoom y respetando el notch.
+  // La app arranca en claro sin importar la preferencia del SO; a partir de
+  // ahí ThemeColorSync lo actualiza según el tema elegido.
+  themeColor: "#f2f2f7",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -48,11 +33,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="es"
-      className={`${dmSans.variable} ${gsCode.variable} h-full`}
-      suppressHydrationWarning
-    >
+    <html lang="es" className="h-full" suppressHydrationWarning>
       <body className="min-h-full">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
