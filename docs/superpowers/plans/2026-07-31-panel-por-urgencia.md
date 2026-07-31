@@ -52,6 +52,8 @@ Crear `vitest.config.mts`. **La extensión `.mts` no es opcional**: con `.ts`, V
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+const root = fileURLToPath(new URL(".", import.meta.url));
+
 export default defineConfig({
   test: {
     // Solo lógica pura por ahora: sin DOM, sin jsdom.
@@ -64,11 +66,23 @@ export default defineConfig({
       // apunta a la carpeta del proyecto. Ojo: en next.config.ts NO se puede
       // hacer esto, porque Next lo compila a una ruta temporal y la resolución
       // de módulos se rompe. Son casos opuestos a propósito.
-      "@": fileURLToPath(new URL(".", import.meta.url)),
+      "@": root,
+
+      // `server-only` es un paquete marcador: su entrypoint por defecto es un
+      // throw, y solo devuelve el módulo vacío bajo la condición de exports
+      // `react-server`, que Vitest no activa. Sin este alias, cualquier test
+      // que alcance un archivo de servidor revienta al importarlo.
+      //
+      // Se apunta al mismo `empty.js` que usaría Next, en vez de agregar
+      // "react-server" a resolve.conditions: esa condición también cambia qué
+      // build de React se resuelve, y arrastraría efectos que no queremos.
+      "server-only": `${root}node_modules/server-only/empty.js`,
     },
   },
 });
 ```
+
+El alias de `server-only` no es opcional: la Task 2 testea `buildGrocerySummary`, que vive en un archivo con `import "server-only"`. Sin el alias, ese test falla al importar, no por su lógica.
 
 - [ ] **Step 3: Agregar el script de test**
 
@@ -422,7 +436,7 @@ Ese componente buscaba sus propios datos y renderizaba su tarjeta. Con el nuevo 
 - [ ] **Step 7: Verificar que no quedan referencias colgadas**
 
 Run: `grep -rn "getGrocerySummary\|getSummary\|supermercado/widget" --include="*.ts" --include="*.tsx" app lib`
-Expected: solo la definición en `app/(app)/supermercado/summary.ts`. Cualquier import de `getSummary` o de `widget` es una referencia rota que se arregla en la Task 4.
+Expected: solo la definición en `app/(app)/supermercado/summary.ts`. Cualquier import de `getSummary` o de `widget` es una referencia rota. La de `lib/modules/widgets.tsx` es esperada: ese archivo se borra entero en la Task 3.
 
 - [ ] **Step 8: Commit**
 

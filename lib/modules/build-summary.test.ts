@@ -1,10 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-// `server-only` es un marcador que lanza al importarse fuera de un Server
-// Component, y summary.ts lo lleva porque también consulta la base. Acá solo se
-// ejercita la parte pura, así que se neutraliza el marcador.
-vi.mock("server-only", () => ({}));
-
+import { describe, expect, it } from "vitest";
 import { buildGrocerySummary } from "@/app/(app)/supermercado/summary";
 
 describe("buildGrocerySummary", () => {
