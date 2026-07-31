@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils";
  * Cada módulo del menú principal. En móvil ocupa el ancho completo y en
  * escritorio entra en una grilla de tres, así que el contenido se apoya arriba
  * y el pie queda alineado aunque los textos tengan distinto largo.
+ *
+ * `preview` lista ítems concretos del módulo -qué falta comprar, qué se está
+ * leyendo- para que el panel se pueda revisar sin entrar a ningún módulo.
  */
 export function ModuleCard({
   href,
@@ -15,6 +18,7 @@ export function ModuleCard({
   detail,
   icon: IconComponent,
   badge,
+  preview,
   className,
 }: {
   href: string;
@@ -22,6 +26,7 @@ export function ModuleCard({
   detail?: string;
   icon: Icon;
   badge?: number;
+  preview?: string[];
   className?: string;
 }) {
   return (
@@ -43,7 +48,17 @@ export function ModuleCard({
         )}
       </div>
 
-      <div className="flex items-end justify-between gap-2">
+      {preview && preview.length > 0 && (
+        <ul className="flex flex-col gap-0.5">
+          {preview.map((item) => (
+            <li key={item} className="text-subhead truncate">
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-auto flex items-end justify-between gap-2">
         <div className="min-w-0">
           <p className="text-headline truncate">{label}</p>
           {detail && (
