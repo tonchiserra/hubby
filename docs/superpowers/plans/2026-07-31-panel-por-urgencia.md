@@ -26,7 +26,7 @@
 Crea el tipo que cada módulo aporta al panel y la función pura que decide el orden. Incluye levantar Vitest, que hoy no existe en el proyecto: la lógica de orden es el único punto con reglas propias y merece una prueba real.
 
 **Files:**
-- Create: `vitest.config.ts`
+- Create: `vitest.config.mts`
 - Create: `lib/modules/summary.ts`
 - Create: `lib/modules/summary.test.ts`
 - Modify: `package.json` (agregar `test` a `scripts` y `vitest` a `devDependencies`)
@@ -46,7 +46,7 @@ pnpm add -D vitest@4
 
 - [ ] **Step 2: Crear la configuración de Vitest**
 
-Crear `vitest.config.ts`:
+Crear `vitest.config.mts`. **La extensión `.mts` no es opcional**: con `.ts`, Vite lo carga como CommonJS y advierte por la sintaxis ESM. La alternativa sería `"type": "module"` en `package.json`, pero eso afecta también a `postcss.config.mjs` y `next.config.ts`.
 
 ```ts
 import { fileURLToPath } from "node:url";
@@ -233,7 +233,7 @@ Expected: PASS — 6 tests en `lib/modules/summary.test.ts`.
 - [ ] **Step 8: Commit**
 
 ```bash
-git add vitest.config.ts package.json pnpm-lock.yaml lib/modules/summary.ts lib/modules/summary.test.ts
+git add vitest.config.mts package.json pnpm-lock.yaml lib/modules/summary.ts lib/modules/summary.test.ts
 git commit -m "feat(panel): contrato de resumen y particion por urgencia
 
 Suma Vitest, que el proyecto no tenia. La particion es el unico punto del
