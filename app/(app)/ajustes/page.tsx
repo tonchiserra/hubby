@@ -21,7 +21,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Ajustes" />
+      <PageHeader back={{ href: "/" }} title="Ajustes" />
 
       <ListGroup title="Cuenta">
         <ListRow

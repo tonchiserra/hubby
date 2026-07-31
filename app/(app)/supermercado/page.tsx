@@ -11,6 +11,7 @@ export default async function SupermercadoPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        back={{ href: "/" }}
         title="Supermercado"
         subtitle={
           items.length === 0
