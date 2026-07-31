@@ -1,37 +1,40 @@
 "use client";
 
 import { useRef } from "react";
-import { TrashIcon } from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
-const ACTION_WIDTH = 88;
+const ACTION_WIDTH = 84;
 /** Pasado este punto, al soltar queda abierto; si no, vuelve solo. */
-const COMMIT = ACTION_WIDTH * 0.6;
+const COMMIT_RATIO = 0.6;
 /** Hasta acá el gesto se considera un tap, no un swipe. */
 const SLOP = 6;
 const EASE = "transform 260ms cubic-bezier(0.32,0.72,0,1)";
 
+export type SwipeAction = {
+  label: string;
+  icon: Icon;
+  onSelect: () => void;
+  tone?: "neutral" | "destructive";
+};
+
 /**
- * Deslizar hacia la izquierda para borrar: el gesto de iOS para acciones
- * destructivas en listas. Reemplaza a los botones inline, que ensucian la fila
- * y no existen en el lenguaje del sistema.
+ * Deslizar hacia la izquierda para revelar acciones, como en las listas de iOS.
  *
- * Todo el gesto se maneja con refs y tocando el DOM directamente. Con estado de
- * React el guard de "estoy arrastrando" todavía es false cuando llega el primer
+ * El gesto se maneja con refs y tocando el DOM directamente. Con estado de React
+ * el guard de "estoy arrastrando" todavía es false cuando llega el primer
  * pointermove -el re-render no ocurrió- y además cada movimiento del dedo
  * dispararía un render entero.
  *
- * El botón queda accesible por teclado igual: un gesto no puede ser la única
- * forma de llegar a una acción.
+ * Las acciones son botones reales, así que siguen alcanzables por teclado: un
+ * gesto no puede ser la única vía a una acción.
  */
 export function SwipeRow({
-  onDelete,
-  deleteLabel,
+  actions,
   children,
   className,
 }: {
-  onDelete: () => void;
-  deleteLabel: string;
+  actions: SwipeAction[];
   children: React.ReactNode;
   className?: string;
 }) {
@@ -42,6 +45,8 @@ export function SwipeRow({
   const active = useRef(false);
   const decided = useRef(false);
 
+  const openWidth = ACTION_WIDTH * actions.length;
+
   const place = (x: number, animate: boolean) => {
     const el = panel.current;
     if (!el) return;
@@ -49,6 +54,8 @@ export function SwipeRow({
     el.style.transform = `translate3d(${x}px,0,0)`;
     offset.current = x;
   };
+
+  const close = () => place(0, true);
 
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -67,12 +74,10 @@ export function SwipeRow({
     if (!decided.current) {
       if (Math.abs(dx) < SLOP) return;
       decided.current = true;
-      // A partir de acá el puntero es nuestro aunque se salga de la fila.
       e.currentTarget.setPointerCapture(e.pointerId);
     }
 
-    const next = Math.min(0, Math.max(-ACTION_WIDTH * 1.25, startOffset.current + dx));
-    place(next, false);
+    place(Math.min(0, Math.max(-openWidth * 1.2, startOffset.current + dx)), false);
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -82,25 +87,33 @@ export function SwipeRow({
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
     if (!decided.current) return; // fue un tap
-    place(offset.current <= -COMMIT ? -ACTION_WIDTH : 0, true);
+    place(offset.current <= -openWidth * COMMIT_RATIO ? -openWidth : 0, true);
   }
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      {/* La acción vive debajo y se descubre al deslizar. */}
-      <button
-        type="button"
-        aria-label={deleteLabel}
-        onClick={() => {
-          place(0, false);
-          onDelete();
-        }}
-        style={{ width: ACTION_WIDTH }}
-        className="bg-destructive absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-0.5 text-white"
-      >
-        <TrashIcon size={20} />
-        <span className="text-caption2">Borrar</span>
-      </button>
+      {/* Las acciones viven debajo y se descubren al deslizar. */}
+      <div className="absolute inset-y-0 right-0 flex">
+        {actions.map((a) => (
+          <button
+            key={a.label}
+            type="button"
+            aria-label={a.label}
+            onClick={() => {
+              close();
+              a.onSelect();
+            }}
+            style={{ width: ACTION_WIDTH }}
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 text-white",
+              a.tone === "destructive" ? "bg-destructive" : "bg-fill",
+            )}
+          >
+            <a.icon size={20} />
+            <span className="text-caption2">{a.label}</span>
+          </button>
+        ))}
+      </div>
 
       <div
         ref={panel}

@@ -4,22 +4,33 @@ import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import {
   BasketIcon,
   MagnifyingGlassIcon,
+  PencilSimpleIcon,
   PlusCircleIcon,
+  TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Segmented } from "@/components/ui/segmented";
+import { PromptDialog } from "@/components/ui/prompt-dialog";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
+import { cn } from "@/lib/utils";
 import type { GroceryItem } from "@/lib/supabase/types";
-import { addItem, deleteItem, markAllBought, setActive } from "./actions";
+import {
+  addItem,
+  deleteItem,
+  markAllBought,
+  renameItem,
+  setActive,
+} from "./actions";
 
 /**
  * Normaliza para comparar: sin acentos, sin mayúsculas, sin espacios de más.
  * Es lo que hace que buscar "cafe" encuentre "Café" — y por lo tanto lo que
- * evita que agregues un duplicado sin darte cuenta.
+ * evita agregar un duplicado sin darse cuenta.
  */
 const norm = (s: string) =>
   s
@@ -29,8 +40,11 @@ const norm = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
+type Filter = "todo" | "faltan" | "casa";
+
 type Patch =
   | { type: "active"; id: string; active: boolean }
+  | { type: "rename"; id: string; name: string }
   | { type: "delete"; id: string }
   | { type: "allBought" };
 
@@ -39,6 +53,10 @@ function apply(items: GroceryItem[], patch: Patch): GroceryItem[] {
     case "active":
       return items.map((i) =>
         i.id === patch.id ? { ...i, active: patch.active } : i,
+      );
+    case "rename":
+      return items.map((i) =>
+        i.id === patch.id ? { ...i, name: patch.name } : i,
       );
     case "delete":
       return items.filter((i) => i.id !== patch.id);
@@ -51,7 +69,9 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
   const [shown, addPatch] = useOptimistic(items, apply);
   const [, startTransition] = useTransition();
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>("todo");
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<GroceryItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const run = (patch: Patch, action: () => Promise<{ error?: string }>) =>
@@ -63,14 +83,17 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
 
   const q = norm(query);
 
-  const { missing, home, exists } = useMemo(() => {
-    const matches = q ? shown.filter((i) => norm(i.name).includes(q)) : shown;
+  const { visible, missingCount, homeCount, exists } = useMemo(() => {
+    const matched = q ? shown.filter((i) => norm(i.name).includes(q)) : shown;
     return {
-      missing: matches.filter((i) => !i.active),
-      home: matches.filter((i) => i.active),
+      visible: matched.filter((i) =>
+        filter === "todo" ? true : filter === "faltan" ? !i.active : i.active,
+      ),
+      missingCount: shown.filter((i) => !i.active).length,
+      homeCount: shown.filter((i) => i.active).length,
       exists: q ? shown.some((i) => norm(i.name) === q) : false,
     };
-  }, [shown, q]);
+  }, [shown, q, filter]);
 
   async function onAdd() {
     const name = query.trim();
@@ -83,13 +106,11 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
   }
 
   const searching = q.length > 0;
-  const nothingFound = searching && missing.length === 0 && home.length === 0;
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Un solo campo para las dos cosas: buscar y agregar. Al escribir ves si
-          el producto ya existe, así que el duplicado se evita antes de crearlo
-          en vez de rechazarlo después con un error. */}
+    <div className="flex flex-col gap-4">
+      {/* Un solo campo para buscar y agregar: al escribir ves si el producto ya
+          existe, así el duplicado se evita antes de crearlo. */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -110,7 +131,6 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
           aria-label="Buscar o agregar producto"
           autoComplete="off"
           maxLength={120}
-          enterKeyHint={exists ? "search" : "done"}
           className="text-body placeholder:text-subtle-foreground min-w-0 flex-1 bg-transparent focus:outline-none"
         />
         {searching && (
@@ -128,14 +148,25 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
         )}
       </form>
 
+      <Segmented
+        name="filtro-supermercado"
+        value={filter}
+        onChange={setFilter}
+        segments={[
+          { value: "todo", label: "Todo", count: shown.length },
+          { value: "faltan", label: "Faltan", count: missingCount },
+          { value: "casa", label: "En casa", count: homeCount },
+        ]}
+      />
+
       {error && (
-        <p role="alert" className="text-footnote text-destructive -mt-6 px-4">
+        <p role="alert" className="text-footnote text-destructive px-4">
           {error}
         </p>
       )}
 
-      {/* Solo se ofrece agregar si no existe ya: es la defensa principal contra
-          los repetidos. */}
+      {/* Solo se ofrece agregar si el nombre no existe: es la defensa principal
+          contra los repetidos. */}
       {searching && !exists && (
         <ListGroup>
           <ListRow
@@ -152,35 +183,35 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
         </ListGroup>
       )}
 
-      {shown.length === 0 && (
+      {shown.length === 0 ? (
         <EmptyState
           icon={BasketIcon}
           title="Inventario vacío"
           description="Escribí arriba lo primero que quieras tener anotado. La lista se arma una sola vez y después solo la vas marcando."
         />
-      )}
-
-      {nothingFound && shown.length > 0 && (
-        <p className="text-subhead text-muted-foreground px-4 text-center">
-          Nada coincide con “{query.trim()}”.
+      ) : visible.length === 0 ? (
+        <p className="text-subhead text-muted-foreground px-4 py-8 text-center">
+          {searching
+            ? `Nada coincide con “${query.trim()}”.`
+            : filter === "faltan"
+              ? "No falta nada. Todo lo que tenés anotado está en casa."
+              : "Todavía no marcaste nada como que lo tenés en casa."}
         </p>
-      )}
-
-      {missing.length > 0 && (
-        <ListGroup
-          title={`Hay que comprar · ${missing.length}`}
-          footer="Tocá un producto cuando lo compres. Deslizá para sacarlo del inventario."
-        >
-          {missing.map((item, i) => (
+      ) : (
+        // Una sola lista: al marcar, el producto se queda donde está. El orden
+        // es alfabético justamente para que nada salte de lugar al tocarlo.
+        <ListGroup footer="Deslizá un producto para editarlo o borrarlo.">
+          {visible.map((item, i) => (
             <ItemRow
               key={item.id}
               item={item}
-              last={i === missing.length - 1}
+              last={i === visible.length - 1}
               onToggle={() =>
-                run({ type: "active", id: item.id, active: true }, () =>
-                  setActive(item.id, true),
+                run({ type: "active", id: item.id, active: !item.active }, () =>
+                  setActive(item.id, !item.active),
                 )
               }
+              onEdit={() => setEditing(item)}
               onDelete={() =>
                 run({ type: "delete", id: item.id }, () => deleteItem(item.id))
               }
@@ -189,42 +220,32 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
         </ListGroup>
       )}
 
-      {home.length > 0 && (
-        <ListGroup
-          title={`En casa · ${home.length}`}
-          footer={
-            missing.length === 0 && !searching
-              ? "Cuando se te termine algo, tocalo para pasarlo a la lista de compras."
-              : undefined
-          }
-        >
-          {home.map((item, i) => (
-            <ItemRow
-              key={item.id}
-              item={item}
-              last={i === home.length - 1}
-              onToggle={() =>
-                run({ type: "active", id: item.id, active: false }, () =>
-                  setActive(item.id, false),
-                )
-              }
-              onDelete={() =>
-                run({ type: "delete", id: item.id }, () => deleteItem(item.id))
-              }
-            />
-          ))}
-        </ListGroup>
-      )}
-
-      {!searching && missing.length > 0 && (
+      {missingCount > 0 && (
         <Button
           variant="tinted"
-          className="self-center"
+          className="mt-2 self-center"
           onClick={() => run({ type: "allBought" }, () => markAllBought())}
         >
           Ya compré todo
         </Button>
       )}
+
+      <PromptDialog
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+        title="Renombrar producto"
+        initialValue={editing?.name ?? ""}
+        placeholder="Nombre del producto"
+        maxLength={120}
+        onConfirm={(name) => {
+          const item = editing;
+          if (!item) return;
+          setError(null);
+          run({ type: "rename", id: item.id, name }, () =>
+            renameItem(item.id, name),
+          );
+        }}
+      />
     </div>
   );
 }
@@ -233,26 +254,42 @@ function ItemRow({
   item,
   last,
   onToggle,
+  onEdit,
   onDelete,
 }: {
   item: GroceryItem;
   last: boolean;
   onToggle: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   // El checkbox es el control real -accesible por teclado y con su rol- y el
-  // nombre es su <label>, así tocar cualquier parte de la fila lo alterna sin
-  // necesidad de handlers sobre un div.
+  // nombre es su <label>, así tocar cualquier parte de la fila lo alterna.
   const inputId = `item-${item.id}`;
 
   return (
-    <SwipeRow deleteLabel={`Sacar ${item.name} del inventario`} onDelete={onDelete}>
+    <SwipeRow
+      actions={[
+        { label: "Editar", icon: PencilSimpleIcon, onSelect: onEdit },
+        {
+          label: "Borrar",
+          icon: TrashIcon,
+          tone: "destructive",
+          onSelect: onDelete,
+        },
+      ]}
+    >
       <ListRow
         last={last}
+        // Lo que falta es lo accionable, así que se lee primero: fondo apenas
+        // teñido y texto a plena fuerza. Lo que ya está en casa se corre a un
+        // segundo plano.
+        className={cn(!item.active && "bg-primary/[0.04]")}
         leading={
           <Checkbox
             id={inputId}
             checked={item.active}
+            tone="positive"
             onCheckedChange={onToggle}
             aria-label={
               item.active
@@ -262,9 +299,24 @@ function ItemRow({
           />
         }
         label={
-          <label htmlFor={inputId} className="block cursor-pointer select-none">
+          <label
+            htmlFor={inputId}
+            className={cn(
+              "block cursor-pointer select-none",
+              item.active
+                ? "text-muted-foreground"
+                : "text-foreground font-medium",
+            )}
+          >
             {item.name}
           </label>
+        }
+        trailing={
+          !item.active ? (
+            <span className="text-caption2 text-primary font-semibold uppercase">
+              Falta
+            </span>
+          ) : undefined
         }
       />
     </SwipeRow>

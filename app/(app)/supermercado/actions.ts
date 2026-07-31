@@ -76,6 +76,32 @@ export async function setActive(id: string, active: boolean) {
   return {};
 }
 
+/** Cambia el nombre del producto, respetando la unicidad del inventario. */
+export async function renameItem(
+  id: string,
+  name: string,
+): Promise<ActionResult> {
+  const clean = name.trim().replace(/\s+/g, " ");
+  if (!clean) return { error: "El nombre no puede quedar vacío." };
+  if (clean.length > 120) return { error: "El nombre es demasiado largo." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("grocery_items")
+    .update({ name: clean })
+    .eq("id", id);
+
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION) {
+      return { error: `Ya tenés un producto llamado “${clean}”.` };
+    }
+    return { error: describe(error, "No se pudo renombrar el producto.") };
+  }
+
+  revalidate();
+  return {};
+}
+
 /** Saca el producto del inventario del todo, no solo de la lista de compras. */
 export async function deleteItem(id: string) {
   const supabase = await createClient();

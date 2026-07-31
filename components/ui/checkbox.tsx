@@ -5,13 +5,19 @@ import { CheckCircleIcon, CircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 /**
- * Círculo de Recordatorios: contorno fino cuando está vacío, círculo relleno
- * con tilde al marcarse. No es el cuadrado con tilde de la web.
+ * Círculo de Recordatorios: contorno cuando está vacío, círculo relleno con
+ * tilde al marcarse. No es el cuadrado con tilde de la web.
+ *
+ * `tone` define el color del estado marcado. Verde comunica "resuelto, lo
+ * tenés" mejor que el azul de acento, que en iOS significa "seleccionado".
  */
 export function Checkbox({
   className,
+  tone = "primary",
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root> & {
+  tone?: "primary" | "positive";
+}) {
   return (
     <CheckboxPrimitive.Root
       className={cn(
@@ -25,13 +31,15 @@ export function Checkbox({
     >
       <CircleIcon
         size={24}
-        weight="regular"
         className="text-subtle-foreground group-data-[state=checked]:hidden"
       />
       <CheckCircleIcon
         size={24}
         weight="fill"
-        className="text-primary hidden group-data-[state=checked]:block"
+        className={cn(
+          "hidden group-data-[state=checked]:block",
+          tone === "positive" ? "text-positive" : "text-primary",
+        )}
       />
     </CheckboxPrimitive.Root>
   );
