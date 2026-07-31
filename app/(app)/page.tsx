@@ -52,6 +52,7 @@ export default async function Dashboard() {
                 <ModuleCard
                   key={mod.id}
                   href={`/${mod.slug}`}
+                  slug={mod.slug}
                   icon={mod.icon}
                   label={mod.label}
                   detail={summary.detail}

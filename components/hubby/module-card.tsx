@@ -1,7 +1,8 @@
-import Link from "next/link";
 import type { Icon } from "@phosphor-icons/react";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
+import { moduleTitleTransition } from "@/lib/transition-names";
+import { TransitionLink } from "./transition-link";
 
 /**
  * Tarjeta de módulo del menú principal.
@@ -18,6 +19,7 @@ export function ModuleCard({
   icon: IconComponent,
   badge,
   preview,
+  slug,
   className,
 }: {
   href: string;
@@ -26,12 +28,14 @@ export function ModuleCard({
   icon: Icon;
   badge?: number;
   preview?: string[];
+  /** Slug del módulo: nombra el elemento compartido de la transición. */
+  slug?: string;
   className?: string;
 }) {
   const reclama = badge !== undefined && badge > 0;
 
   return (
-    <Link
+    <TransitionLink
       href={href}
       className={cn(
         "group flex min-h-touch flex-col gap-4 rounded-lg p-5",
@@ -76,7 +80,14 @@ export function ModuleCard({
 
       <div className="mt-auto flex items-end justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-headline display-tight truncate">{label}</p>
+          <p
+            className="text-headline display-tight truncate"
+            style={
+              slug ? { viewTransitionName: moduleTitleTransition(slug) } : undefined
+            }
+          >
+            {label}
+          </p>
           {detail && (
             <p
               className={cn(
@@ -98,6 +109,6 @@ export function ModuleCard({
           )}
         />
       </div>
-    </Link>
+    </TransitionLink>
   );
 }

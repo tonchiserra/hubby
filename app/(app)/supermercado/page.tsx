@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/hubby/page-header";
 import { findModuleBySlug } from "@/lib/modules/registry";
 import { accentVars } from "@/lib/modules/types";
+import { moduleTitleTransition } from "@/lib/transition-names";
 import { Pantry } from "./pantry";
 import { getItems } from "./queries";
 
@@ -18,6 +19,7 @@ export default async function SupermercadoPage() {
     <div className="flex flex-col gap-6" style={accentVars(modulo)}>
       <PageHeader
         back={{ href: "/" }}
+        transitionName={moduleTitleTransition("supermercado")}
         title="Supermercado"
         subtitle={
           items.length === 0

@@ -12,12 +12,15 @@ export function PageHeader({
   subtitle,
   back,
   action,
+  transitionName,
   className,
 }: {
   title: string;
   subtitle?: string;
   back?: { href: string; label?: string };
   action?: React.ReactNode;
+  /** Nombre del elemento compartido. Debe coincidir con el de la tarjeta. */
+  transitionName?: string;
   className?: string;
 }) {
   return (
@@ -35,7 +38,12 @@ export function PageHeader({
 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h1 className="text-display display-tight">{title}</h1>
+          <h1
+            className="text-display display-tight"
+            style={transitionName ? { viewTransitionName: transitionName } : undefined}
+          >
+            {title}
+          </h1>
           {subtitle && (
             <p className="text-subhead text-ink-soft mt-1">{subtitle}</p>
           )}
