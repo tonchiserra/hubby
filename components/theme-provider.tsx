@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { MotionConfig } from "motion/react";
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 
 /** Debe coincidir con --background de cada modo en globals.css. */
@@ -42,7 +43,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <ThemeColorSync />
-      {children}
+      {/* reducedMotion="user" respeta la preferencia del sistema: quien la
+          tenga activada recibe cambios instantáneos en vez de movimiento. */}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </NextThemesProvider>
   );
 }

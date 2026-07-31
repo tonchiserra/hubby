@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   BasketIcon,
   MagnifyingGlassIcon,
@@ -18,6 +19,13 @@ import { ListGroup, ListRow } from "@/components/hubby/list";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { cn } from "@/lib/utils";
+import {
+  blockVariants,
+  easeQuick,
+  rowVariants,
+  springEnter,
+  springLayout,
+} from "@/lib/motion";
 import type { GroceryItem } from "@/lib/supabase/types";
 import {
   addItem,
@@ -159,29 +167,50 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
         ]}
       />
 
-      {error && (
-        <p role="alert" className="text-footnote text-destructive px-4">
-          {error}
-        </p>
-      )}
+      <AnimatePresence initial={false}>
+        {error && (
+          <motion.p
+            key="error"
+            role="alert"
+            variants={blockVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={springEnter}
+            className="text-footnote text-destructive overflow-hidden px-4"
+          >
+            {error}
+          </motion.p>
+        )}
 
-      {/* Solo se ofrece agregar si el nombre no existe: es la defensa principal
-          contra los repetidos. */}
-      {searching && !exists && (
-        <ListGroup>
-          <ListRow
-            last
-            asButton
-            onClick={() => void onAdd()}
-            leading={<PlusCircleIcon size={22} className="text-primary" />}
-            label={
-              <span>
-                Agregar <span className="font-semibold">{query.trim()}</span>
-              </span>
-            }
-          />
-        </ListGroup>
-      )}
+        {/* Solo se ofrece agregar si el nombre no existe: es la defensa
+            principal contra los repetidos. */}
+        {searching && !exists && (
+          <motion.div
+            key="add"
+            variants={blockVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={springEnter}
+            className="overflow-hidden"
+          >
+            <ListGroup>
+              <ListRow
+                last
+                asButton
+                onClick={() => void onAdd()}
+                leading={<PlusCircleIcon size={22} className="text-primary" />}
+                label={
+                  <span>
+                    Agregar <span className="font-semibold">{query.trim()}</span>
+                  </span>
+                }
+              />
+            </ListGroup>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {shown.length === 0 ? (
         <EmptyState
@@ -189,46 +218,89 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
           title="Inventario vacío"
           description="Escribí arriba lo primero que quieras tener anotado. La lista se arma una sola vez y después solo la vas marcando."
         />
-      ) : visible.length === 0 ? (
-        <p className="text-subhead text-muted-foreground px-4 py-8 text-center">
-          {searching
-            ? `Nada coincide con “${query.trim()}”.`
-            : filter === "faltan"
-              ? "No falta nada. Todo lo que tenés anotado está en casa."
-              : "Todavía no marcaste nada como que lo tenés en casa."}
-        </p>
       ) : (
         // Una sola lista: al marcar, el producto se queda donde está. El orden
         // es alfabético justamente para que nada salte de lugar al tocarlo.
         <ListGroup footer="Deslizá un producto para editarlo o borrarlo.">
-          {visible.map((item, i) => (
-            <ItemRow
-              key={item.id}
-              item={item}
-              last={i === visible.length - 1}
-              onToggle={() =>
-                run({ type: "active", id: item.id, active: !item.active }, () =>
-                  setActive(item.id, !item.active),
-                )
-              }
-              onEdit={() => setEditing(item)}
-              onDelete={() =>
-                run({ type: "delete", id: item.id }, () => deleteItem(item.id))
-              }
-            />
-          ))}
+          {/* La animación va acá afuera y no dentro de SwipeRow: ese componente
+              maneja transform a mano durante el gesto y se pelearían por la
+              misma propiedad. */}
+          {/* Modo sync a propósito: con popLayout las filas que salen se
+              quitan del flujo al instante y la tarjeta colapsa de golpe. Acá
+              se quedan ocupando lugar mientras animan su altura a cero, así el
+              contenedor se encoge acompañando el movimiento. */}
+          <AnimatePresence initial={false}>
+            {visible.map((item, i) => (
+              <motion.div
+                key={item.id}
+                layout
+                variants={rowVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={springLayout}
+                className="overflow-hidden"
+              >
+                <ItemRow
+                  item={item}
+                  last={i === visible.length - 1}
+                  onToggle={() =>
+                    run(
+                      { type: "active", id: item.id, active: !item.active },
+                      () => setActive(item.id, !item.active),
+                    )
+                  }
+                  onEdit={() => setEditing(item)}
+                  onDelete={() =>
+                    run({ type: "delete", id: item.id }, () =>
+                      deleteItem(item.id),
+                    )
+                  }
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </ListGroup>
       )}
 
-      {missingCount > 0 && (
-        <Button
-          variant="tinted"
-          className="mt-2 self-center"
-          onClick={() => run({ type: "allBought" }, () => markAllBought())}
-        >
-          Ya compré todo
-        </Button>
-      )}
+      <AnimatePresence initial={false}>
+        {shown.length > 0 && visible.length === 0 && (
+          <motion.p
+            key="vacio"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={easeQuick}
+            className="text-subhead text-muted-foreground px-4 py-8 text-center"
+          >
+            {searching
+              ? `Nada coincide con “${query.trim()}”.`
+              : filter === "faltan"
+                ? "No falta nada. Todo lo que tenés anotado está en casa."
+                : "Todavía no marcaste nada como que lo tenés en casa."}
+          </motion.p>
+        )}
+
+        {missingCount > 0 && (
+          <motion.div
+            key="comprar-todo"
+            layout
+            variants={blockVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={springEnter}
+            className="flex justify-center overflow-hidden pt-2"
+          >
+            <Button
+              variant="tinted"
+              onClick={() => run({ type: "allBought" }, () => markAllBought())}
+            >
+              Ya compré todo
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <PromptDialog
         open={editing !== null}
