@@ -34,10 +34,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f1f0ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#111110" },
-  ],
+  // Valor inicial fijo: la app arranca en claro sin importar la preferencia del
+  // SO. A partir de ahí, ThemeColorSync lo actualiza según el tema elegido.
+  themeColor: "#f1f0ef",
   // La app se instala como PWA: sin zoom y respetando el notch.
   width: "device-width",
   initialScale: 1,
