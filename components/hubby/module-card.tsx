@@ -42,10 +42,16 @@ export function ModuleCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <IconComponent
-          size={22}
-          className={reclama ? "opacity-80" : "text-ink-faint"}
-        />
+        {/* Círculo teñido detrás del ícono: está en las tres referencias y
+            sacarlo fue justamente lo que dejó las pantallas sin color. */}
+        <span
+          className={cn(
+            "grid size-10 shrink-0 place-items-center rounded-full",
+            reclama ? "bg-white/15 text-accent-ink" : "bg-accent-wash text-accent",
+          )}
+        >
+          <IconComponent size={20} />
+        </span>
         {reclama && (
           <span className="text-title3 leading-none font-bold tabular-nums">
             {badge}

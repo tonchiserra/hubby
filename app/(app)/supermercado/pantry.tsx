@@ -124,12 +124,12 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
           e.preventDefault();
           void onAdd();
         }}
-        className="bg-card-sunken flex h-touch items-center gap-2 rounded-lg px-3"
+        className="bg-sand flex h-touch items-center gap-2 rounded-lg px-3.5"
       >
         <MagnifyingGlassIcon
           size={18}
           weight="bold"
-          className="text-ink-faint shrink-0"
+          className="text-accent shrink-0 opacity-70"
         />
         <input
           ref={inputRef}
@@ -356,7 +356,7 @@ function ItemRow({
         // Lo que falta es lo accionable, así que se lee primero: fondo apenas
         // teñido y texto a plena fuerza. Lo que ya está en casa se corre a un
         // segundo plano.
-        className={cn(!item.active && "bg-accent/[0.04]")}
+        className={cn(!item.active && "bg-accent-wash")}
         leading={
           <Checkbox
             id={inputId}
@@ -384,7 +384,7 @@ function ItemRow({
         }
         trailing={
           !item.active ? (
-            <span className="text-micro text-accent font-semibold uppercase">
+            <span className="bg-accent text-accent-ink rounded-full px-2 py-0.5 text-micro font-semibold tracking-wide uppercase">
               Falta
             </span>
           ) : undefined

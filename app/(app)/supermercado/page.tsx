@@ -1,4 +1,6 @@
 import { PageHeader } from "@/components/hubby/page-header";
+import { findModuleBySlug } from "@/lib/modules/registry";
+import { accentVars } from "@/lib/modules/types";
 import { Pantry } from "./pantry";
 import { getItems } from "./queries";
 
@@ -8,8 +10,12 @@ export default async function SupermercadoPage() {
   const items = await getItems();
   const missing = items.filter((i) => !i.active).length;
 
+  // El módulo tiñe su pantalla entera con su color: acá se inyecta --accent y
+  // todo lo que lo use debajo lo hereda, sin pasarlo por props.
+  const modulo = findModuleBySlug("supermercado")!;
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" style={accentVars(modulo)}>
       <PageHeader
         back={{ href: "/" }}
         title="Supermercado"

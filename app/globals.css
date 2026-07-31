@@ -10,13 +10,15 @@
    salvia, tarjetas que flotan sobre papel- y no de la especificación de ningún
    sistema operativo. Esa fue la lección de los dos intentos anteriores.
 
-   UNA SOLA REGLA DE COLOR, y de ahí sale la personalidad:
+   LA REGLA DE COLOR, y de ahí sale la personalidad:
 
-       El acento marca lo que reclama tu atención. Lo resuelto se apaga.
+       Cada módulo tiene su color y tiñe su pantalla.
+       Dentro de esa pantalla, el color marca lo que reclama atención.
 
-   Nada más lleva color. Ni la navegación, ni los encabezados, ni los íconos de
-   adorno. Así el verde nunca es decoración: cuando aparece, significa algo. Es
-   lo que permite que la interfaz sea mínima y aun así tenga voz.
+   Así el color nunca es decoración: dice dónde estás y qué te falta. La primera
+   versión de esta regla decía solo "el acento marca lo que reclama atención", y
+   como casi nunca reclama nada, las pantallas quedaban sin color. Minimalismo
+   pasado de rosca es austeridad.
 
    El terracota queda reservado para lo destructivo. No para "falta algo": que
    falte leche no es un error, es el estado normal del que trata la app.
@@ -36,7 +38,15 @@
   --line: #e4e3da;
   --line-strong: #d3d2c7;
 
-  /* Acento: verde salvia desaturado. Solo para lo que reclama atención. */
+  /* Arena: segundo tono cálido de la paleta. Es el que llevan los campos, la
+     pista del segmentado y los contenedores de ícono, para que las superficies
+     neutras no sean todas del mismo gris. Sale de los círculos beige que tienen
+     las referencias detrás de cada ícono. */
+  --sand: #e9e4d6;
+  --sand-deep: #ddd6c3;
+
+  /* Acento por defecto. Cada módulo lo pisa con el suyo en su propia pantalla:
+     ver `accent` en lib/modules/registry.ts. */
   --accent: #4a7a5b;
   --accent-hover: #3f6a4e;
   --accent-ink: #ffffff;
@@ -73,6 +83,9 @@
   --line: #2b2d28;
   --line-strong: #3a3c36;
 
+  --sand: #2a2721;
+  --sand-deep: #35312a;
+
   --accent: #7cb28c;
   --accent-hover: #8dc09c;
   --accent-ink: #12200f;
@@ -89,6 +102,8 @@
   --color-paper: var(--paper);
   --color-card: var(--card);
   --color-card-sunken: var(--card-sunken);
+  --color-sand: var(--sand);
+  --color-sand-deep: var(--sand-deep);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);

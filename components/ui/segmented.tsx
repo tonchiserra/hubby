@@ -39,7 +39,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label="Filtro"
-      className={cn("bg-card-sunken flex gap-0.5 rounded-lg p-0.5", className)}
+      className={cn("bg-sand flex gap-0.5 rounded-lg p-0.5", className)}
     >
       {segments.map((s) => {
         const selected = s.value === value;

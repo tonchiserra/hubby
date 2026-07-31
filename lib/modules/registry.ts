@@ -15,6 +15,14 @@ export const MODULES: ModuleDefinition[] = [
     shortLabel: "Súper",
     icon: BasketIcon,
     description: "Tu inventario de casa. Lo que se termina arma la lista de compras.",
+    // Verde salvia: el color de marca de hubby vive acá, en su primer módulo.
+    accent: {
+      solid: "#4a7a5b",
+      ink: "#ffffff",
+      wash: "#e0ebe3",
+      solidDark: "#7cb28c",
+      washDark: "#22301f",
+    },
   },
 ];
 

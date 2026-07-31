@@ -19,7 +19,7 @@ const button = cva(
         /** La acción principal. Lleva el acento porque reclama atención. */
         solid: "bg-accent text-accent-ink hover:bg-accent-hover rounded-full",
         /** Secundaria: papel hundido, sin color. */
-        soft: "bg-card-sunken text-ink hover:bg-line rounded-full",
+        soft: "bg-sand text-ink hover:bg-sand-deep rounded-full",
         /** Solo texto. Sin color salvo que sea la acción principal. */
         quiet: "text-ink-soft hover:text-ink",
         destructive: "text-danger hover:bg-danger-wash rounded-full",

@@ -5,7 +5,7 @@ export function Input({ className, ...props }: React.ComponentProps<"input">) {
   return (
     <input
       className={cn(
-        "bg-card-sunken text-body text-ink placeholder:text-ink-faint",
+        "bg-sand text-body text-ink placeholder:text-ink-faint",
         "h-11 w-full rounded-md px-4",
         "transition-shadow duration-150",
         "focus:outline-none focus:ring-2 focus:ring-accent/35",
