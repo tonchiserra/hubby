@@ -20,16 +20,3 @@ export async function getItems(): Promise<GroceryItem[]> {
   if (error) throw new Error(`No se pudo leer el inventario: ${error.message}`);
   return data ?? [];
 }
-
-export async function getSummary() {
-  const supabase = await createClient();
-  const [missing, total] = await Promise.all([
-    supabase
-      .from("grocery_items")
-      .select("*", { count: "exact", head: true })
-      .eq("active", false),
-    supabase.from("grocery_items").select("*", { count: "exact", head: true }),
-  ]);
-
-  return { missing: missing.count ?? 0, total: total.count ?? 0 };
-}
