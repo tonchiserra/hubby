@@ -15,7 +15,9 @@ export default async function SuperPage() {
         subtitle={
           items.length === 0
             ? "Nada anotado"
-            : `${pending} de ${items.length} pendiente${pending === 1 ? "" : "s"}`
+            : pending === 0
+              ? "Todo comprado"
+              : `${pending} pendiente${pending === 1 ? "" : "s"} de ${items.length}`
         }
       />
       <GroceryList items={items} />

@@ -22,7 +22,7 @@ const STEPS = [
   },
   {
     title: "Cerrá el registro público",
-    body: "En Authentication → Sign In / Providers desactivá 'Allow new users to sign up', y creá tu usuario a mano desde Authentication → Users.",
+    body: "En Authentication → Sign In / Providers desactivá 'Allow new users to sign up'. Después creá tu usuario desde Authentication → Users, con contraseña y Auto Confirm activado.",
   },
 ];
 

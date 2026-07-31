@@ -17,8 +17,7 @@ export default async function LoginPage({
       <header className="flex flex-col gap-2">
         <h1 className="text-largetitle">hubby</h1>
         <p className="text-subhead text-muted-foreground">
-          Todo lo que trackeás, en un solo lugar. Te mandamos un enlace por mail
-          para entrar; no hace falta contraseña.
+          Todo lo que trackeás, en un solo lugar.
         </p>
       </header>
 
