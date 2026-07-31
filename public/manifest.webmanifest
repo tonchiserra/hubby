@@ -1,0 +1,20 @@
+{
+  "name": "hubby",
+  "short_name": "hubby",
+  "description": "Tu hub personal: todo lo que trackeás, en un solo lugar.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f0ef",
+  "theme_color": "#f1f0ef",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,26 +1,183 @@
 @import "tailwindcss";
 
+/* Escalas crudas de Radix Colors (MIT). Se importan en vez de transcribirse:
+   sus selectores :root / .dark encajan con la estrategia de clase de next-themes,
+   y así los valores nunca quedan desactualizados respecto del paquete. */
+@import "@radix-ui/colors/sand.css";
+@import "@radix-ui/colors/sand-dark.css";
+@import "@radix-ui/colors/sand-alpha.css";
+@import "@radix-ui/colors/sand-dark-alpha.css";
+@import "@radix-ui/colors/jade.css";
+@import "@radix-ui/colors/jade-dark.css";
+@import "@radix-ui/colors/tomato.css";
+@import "@radix-ui/colors/tomato-dark.css";
+
+/* Modo oscuro por clase, no por prefers-color-scheme: next-themes necesita
+   poder forzarlo desde el toggle. */
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   Capa semántica
+   ---------------------------------------------------------------------------
+   Las escalas de Radix ya intercambian sus propios valores al entrar .dark,
+   así que la mayoría de estos tokens no necesita override: --sand-12 es oscuro
+   en claro y claro en oscuro. Solo se redefinen abajo los que usan un PASO
+   distinto según el modo.
+--------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Superficies. Patrón "grouped background" de iOS: la página es más oscura
+     que las tarjetas. Es una desviación deliberada de la guía de Radix (que
+     sugiere el paso 1 para el fondo de app) y es lo que produce la sensación
+     de capas sin recurrir a sombras. */
+  --background: var(--sand-3);
+  --foreground: var(--sand-12);
+  --card: var(--sand-1);
+  --card-foreground: var(--sand-12);
+  --popover: var(--sand-1);
+  --popover-foreground: var(--sand-12);
+
+  /* Neutros de apoyo */
+  --muted: var(--sand-4);
+  --muted-foreground: var(--sand-11);
+  --secondary: var(--sand-4);
+  --secondary-foreground: var(--sand-12);
+
+  /* Bordes translúcidos: al ser alpha, el hairline funciona igual sobre la
+     página, sobre una tarjeta o sobre una superficie con blur. */
+  --border: var(--sand-a6);
+  --separator: var(--sand-a5);
+  --input: var(--sand-a7);
+
+  /* Acento único de marca */
+  --primary: var(--jade-9);
+  --primary-hover: var(--jade-10);
+  --primary-foreground: #ffffff;
+  --accent: var(--jade-3);
+  --accent-foreground: var(--jade-11);
+  --ring: var(--jade-8);
+
+  /* Estados */
+  --destructive: var(--tomato-9);
+  --destructive-foreground: #ffffff;
+  --positive: var(--jade-11);
+  --negative: var(--tomato-11);
+
+  /* Cristal (tab bar, headers de sheets). Deliberadamente acotado: backdrop-filter
+     sobre superficies que scrollean cuesta frames en Safari móvil. */
+  --glass: color-mix(in srgb, var(--sand-1) 72%, transparent);
+  --glass-border: var(--sand-a6);
+}
+
+.dark {
+  --background: var(--sand-1);
+  --card: var(--sand-2);
+  --popover: var(--sand-3);
+  --glass: color-mix(in srgb, var(--sand-2) 72%, transparent);
 }
 
 @theme inline {
+  /* --- Color ------------------------------------------------------------ */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-border: var(--border);
+  --color-separator: var(--separator);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
+
+  /* --- Tipografía -------------------------------------------------------- */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-gs-code), ui-monospace, "SF Mono", monospace;
+
+  /* Escala derivada de los tamaños de Dynamic Type de iOS. El rango ancho
+     -de 11px a 34px- es lo que da jerarquía por tamaño en vez de por color. */
+  --text-caption2: 0.6875rem;
+  --text-caption2--line-height: 0.8125rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-footnote: 0.8125rem;
+  --text-footnote--line-height: 1.125rem;
+  --text-subhead: 0.9375rem;
+  --text-subhead--line-height: 1.25rem;
+  --text-callout: 1rem;
+  --text-callout--line-height: 1.3125rem;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.375rem;
+  --text-headline: 1.0625rem;
+  --text-headline--line-height: 1.375rem;
+  --text-headline--font-weight: 600;
+  --text-title3: 1.25rem;
+  --text-title3--line-height: 1.5625rem;
+  --text-title3--font-weight: 600;
+  --text-title2: 1.375rem;
+  --text-title2--line-height: 1.75rem;
+  --text-title2--font-weight: 600;
+  --text-title1: 1.75rem;
+  --text-title1--line-height: 2.125rem;
+  --text-title1--font-weight: 700;
+  --text-largetitle: 2.125rem;
+  --text-largetitle--line-height: 2.5625rem;
+  --text-largetitle--font-weight: 700;
+
+  /* --- Radios ------------------------------------------------------------ */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.75rem;
+
+  /* --- Alturas mínimas de target táctil ---------------------------------- */
+  --spacing-touch: 2.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans text-body antialiased;
+    /* Evita el rebote de scroll que rompe la ilusión de app nativa en iOS */
+    overscroll-behavior-y: none;
+  }
+
+  /* El foco visible solo aparece para navegación por teclado, no al tocar. */
+  :focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility hairline-b {
+  /* Separador de medio píxel, el patrón de listas de iOS. En pantallas no-retina
+     el navegador lo redondea a 1px, que es el comportamiento correcto. */
+  border-bottom: 0.5px solid var(--separator);
+}
+
+@utility glass {
+  background-color: var(--glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
