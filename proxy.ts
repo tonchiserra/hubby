@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 
 /** Rutas accesibles sin sesión. */
-const PUBLIC_PREFIXES = ["/login", "/setup", "/kitchen-sink"];
+const PUBLIC_PREFIXES = ["/login", "/setup", "/kitchen-sink", "/direcciones"];
 
 const isPublic = (pathname: string) =>
   PUBLIC_PREFIXES.some(
