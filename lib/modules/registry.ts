@@ -1,4 +1,4 @@
-import { ShoppingCartIcon } from "@phosphor-icons/react/dist/ssr";
+import { BasketIcon } from "@phosphor-icons/react/dist/ssr";
 import type { ModuleDefinition } from "./types";
 
 /**
@@ -10,11 +10,11 @@ import type { ModuleDefinition } from "./types";
 export const MODULES: ModuleDefinition[] = [
   {
     id: "grocery_item",
-    slug: "super",
-    label: "Lista del súper",
+    slug: "supermercado",
+    label: "Supermercado",
     shortLabel: "Súper",
-    icon: ShoppingCartIcon,
-    description: "Lo que falta comprar, siempre a mano.",
+    icon: BasketIcon,
+    description: "Tu inventario de casa. Lo que se termina arma la lista de compras.",
   },
 ];
 

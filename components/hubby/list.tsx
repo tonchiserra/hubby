@@ -46,6 +46,8 @@ type ListRowProps = Omit<React.ComponentProps<"div">, "title"> & {
   interactive?: boolean;
   /** Última fila del grupo: sin separador. */
   last?: boolean;
+  /** Renderiza la fila como <button>. Necesario si la fila entera es la acción. */
+  asButton?: boolean;
 };
 
 export function ListRow({
@@ -55,12 +57,18 @@ export function ListRow({
   detail,
   interactive,
   last,
+  asButton,
   className,
   ...props
 }: ListRowProps) {
+  // Una fila con onClick tiene que ser un botón: como div queda fuera del
+  // alcance del teclado y sin rol para lectores de pantalla.
+  const Comp = (asButton ? "button" : "div") as "div";
   return (
-    <div
+    <Comp
+      {...(asButton ? { type: "button" as const } : {})}
       className={cn(
+        asButton && "w-full text-left",
         "flex min-h-touch items-center gap-3 pr-4 pl-4",
         // El separador arranca donde arranca el texto. Si la fila tiene un
         // elemento a la izquierda, se corre para dejarlo pasar.
@@ -101,6 +109,6 @@ export function ListRow({
           />
         )}
       </div>
-    </div>
+    </Comp>
   );
 }

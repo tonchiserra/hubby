@@ -22,8 +22,8 @@ export type Database = {
           id: string;
           user_id: string;
           name: string;
-          quantity: number;
-          done: boolean;
+          /** true = lo tenés en casa. false = se terminó, hay que comprarlo. */
+          active: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -31,8 +31,7 @@ export type Database = {
           id?: string;
           user_id?: string;
           name: string;
-          quantity?: number;
-          done?: boolean;
+          active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -40,8 +39,7 @@ export type Database = {
           id?: string;
           user_id?: string;
           name?: string;
-          quantity?: number;
-          done?: boolean;
+          active?: boolean;
           created_at?: string;
           updated_at?: string;
         };

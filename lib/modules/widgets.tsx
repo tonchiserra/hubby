@@ -1,6 +1,6 @@
 import "server-only";
 import type { ComponentType } from "react";
-import { GroceryWidget } from "@/app/(app)/super/widget";
+import { SupermercadoWidget } from "@/app/(app)/supermercado/widget";
 
 /**
  * Widgets de dashboard, indexados por `id` de módulo.
@@ -12,5 +12,5 @@ import { GroceryWidget } from "@/app/(app)/super/widget";
  * Solo lo importa el dashboard, que es Server Component.
  */
 export const MODULE_WIDGETS: Record<string, ComponentType> = {
-  grocery_item: GroceryWidget,
+  grocery_item: SupermercadoWidget,
 };
