@@ -4,8 +4,8 @@ import type { ModuleDefinition } from "./types";
 /**
  * Única fuente de verdad de los módulos. La navegación se deriva de este array.
  *
- * Client-safe por diseño: solo metadata, sin imports de servidor. El widget de
- * dashboard de cada módulo se registra aparte, en `widgets.tsx`.
+ * Client-safe por diseño: solo metadata, sin imports de servidor. El resumen
+ * que cada módulo aporta al panel se registra aparte, en `summaries.ts`.
  */
 export const MODULES: ModuleDefinition[] = [
   {
