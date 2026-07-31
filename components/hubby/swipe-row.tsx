@@ -106,11 +106,11 @@ export function SwipeRow({
             style={{ width: ACTION_WIDTH }}
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 text-white",
-              a.tone === "destructive" ? "bg-destructive" : "bg-fill",
+              a.tone === "destructive" ? "bg-danger" : "bg-card-sunken",
             )}
           >
             <a.icon size={20} />
-            <span className="text-caption2">{a.label}</span>
+            <span className="text-micro">{a.label}</span>
           </button>
         ))}
       </div>

@@ -39,7 +39,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label="Filtro"
-      className={cn("bg-fill-tertiary flex gap-0.5 rounded-md p-0.5", className)}
+      className={cn("bg-card-sunken flex gap-0.5 rounded-lg p-0.5", className)}
     >
       {segments.map((s) => {
         const selected = s.value === value;
@@ -50,9 +50,9 @@ export function Segmented<T extends string>({
               "relative flex flex-1 cursor-pointer items-center justify-center gap-1.5",
               "rounded-[7px] px-2 py-1.5 select-none",
               "text-footnote font-semibold",
-              "has-[:focus-visible]:outline-primary has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
+              "has-[:focus-visible]:outline-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
               "transition-colors duration-150",
-              selected ? "text-foreground" : "text-muted-foreground",
+              selected ? "text-ink" : "text-ink-soft",
             )}
           >
             {selected && (
@@ -77,7 +77,7 @@ export function Segmented<T extends string>({
               <span
                 className={cn(
                   "relative tabular-nums",
-                  selected ? "text-muted-foreground" : "text-subtle-foreground",
+                  selected ? "text-ink-soft" : "text-ink-faint",
                 )}
               >
                 {s.count}

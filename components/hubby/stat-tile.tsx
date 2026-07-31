@@ -1,9 +1,5 @@
 import { cn } from "@/lib/utils";
 
-/**
- * Cifra grande con etiqueta. Los números van en la mono (Google Sans Code) y con
- * `tabular-nums` para que no bailen al actualizarse.
- */
 export function StatTile({
   label,
   value,
@@ -14,24 +10,35 @@ export function StatTile({
   label: string;
   value: React.ReactNode;
   hint?: string;
-  tone?: "neutral" | "positive" | "negative";
+  tone?: "neutral" | "attention";
   className?: string;
 }) {
+  const reclama = tone === "attention";
+
   return (
-    <div className={cn("bg-card flex flex-col gap-0.5 rounded-md p-4", className)}>
-      <span className="text-caption2 text-muted-foreground uppercase">
-        {label}
-      </span>
+    <div
+      className={cn(
+        "shadow-card flex flex-col gap-1 rounded-lg p-5",
+        reclama ? "bg-accent text-accent-ink" : "bg-card text-ink",
+        className,
+      )}
+    >
       <span
         className={cn(
-          "text-title1 tabular-nums -tracking-[0.01em]",
-          tone === "positive" && "text-positive",
-          tone === "negative" && "text-destructive",
+          "text-micro font-medium tracking-wide uppercase",
+          reclama ? "opacity-75" : "text-ink-soft",
         )}
       >
-        {value}
+        {label}
       </span>
-      {hint && <span className="text-caption text-muted-foreground">{hint}</span>}
+      <span className="text-title1 display-tight tabular-nums">{value}</span>
+      {hint && (
+        <span
+          className={cn("text-caption", reclama ? "opacity-75" : "text-ink-soft")}
+        >
+          {hint}
+        </span>
+      )}
     </div>
   );
 }

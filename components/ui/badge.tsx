@@ -6,17 +6,17 @@ const badge = cva(
   {
     variants: {
       variant: {
-        /** Contador de iOS: círculo relleno, como los badges de la tab bar. */
-        count: "bg-fill text-muted-foreground",
-        primary: "bg-primary text-primary-foreground",
-        destructive: "bg-destructive text-primary-foreground",
+        /** Reclama atención: lleva el acento. Es la única razón para el color. */
+        attention: "bg-accent text-accent-ink",
+        /** Informativo, sin urgencia. */
+        quiet: "bg-card-sunken text-ink-soft",
       },
       size: {
-        sm: "min-w-5 h-5 px-1.5 text-caption2",
+        sm: "min-w-5 h-5 px-1.5 text-micro",
         md: "min-w-6 h-6 px-2 text-caption",
       },
     },
-    defaultVariants: { variant: "count", size: "md" },
+    defaultVariants: { variant: "attention", size: "md" },
   },
 );
 

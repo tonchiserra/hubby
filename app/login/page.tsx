@@ -15,8 +15,8 @@ export default async function LoginPage({
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-6 py-12">
       <header className="flex flex-col gap-2">
-        <h1 className="text-largetitle">hubby</h1>
-        <p className="text-subhead text-muted-foreground">
+        <h1 className="text-display">hubby</h1>
+        <p className="text-subhead text-ink-soft">
           Todo lo que trackeás, en un solo lugar.
         </p>
       </header>

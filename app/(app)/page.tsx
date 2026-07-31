@@ -73,7 +73,7 @@ export default async function Dashboard() {
                     <ListRow
                       last={i === quiet.length - 1}
                       interactive
-                      leading={<ModIcon size={22} className="text-primary" />}
+                      leading={<ModIcon size={22} className="text-accent" />}
                       label={mod.label}
                       detail={summary.detail}
                     />
@@ -88,7 +88,7 @@ export default async function Dashboard() {
               <ListRow
                 last
                 interactive
-                leading={<GearIcon size={22} className="text-primary" />}
+                leading={<GearIcon size={22} className="text-accent" />}
                 label="Ajustes"
                 detail="Cuenta y apariencia"
               />

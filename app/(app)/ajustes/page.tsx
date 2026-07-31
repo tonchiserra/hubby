@@ -25,7 +25,7 @@ export default async function SettingsPage() {
 
       <ListGroup title="Cuenta">
         <ListRow
-          leading={<UserIcon size={22} className="text-muted-foreground" />}
+          leading={<UserIcon size={22} className="text-ink-soft" />}
           label="Sesión"
           detail={user?.email ?? "—"}
         />
@@ -33,7 +33,7 @@ export default async function SettingsPage() {
 
       <ListGroup title="Apariencia">
         <ListRow
-          leading={<MoonIcon size={22} className="text-muted-foreground" />}
+          leading={<MoonIcon size={22} className="text-ink-soft" />}
           label="Tema"
           detail="hubby arranca siempre en claro"
           trailing={<ThemeToggle />}
@@ -41,7 +41,7 @@ export default async function SettingsPage() {
       </ListGroup>
 
       <form action={signOut}>
-        <Button type="submit" variant="plain" className="text-destructive" block>
+        <Button type="submit" variant="destructive" block>
           <SignOutIcon size={20} />
           Cerrar sesión
         </Button>

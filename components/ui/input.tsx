@@ -1,17 +1,14 @@
 import { cn } from "@/lib/utils";
 
-/**
- * Campo de iOS: relleno translúcido, sin borde. El borde de 1px es un patrón
- * web; iOS distingue el campo por su relleno.
- */
+/** Campo suelto: papel hundido, sin borde. El borde de 1px es ruido. */
 export function Input({ className, ...props }: React.ComponentProps<"input">) {
   return (
     <input
       className={cn(
-        "bg-fill-tertiary text-body text-foreground placeholder:text-subtle-foreground",
-        "h-touch w-full rounded-md px-3.5",
+        "bg-card-sunken text-body text-ink placeholder:text-ink-faint",
+        "h-11 w-full rounded-md px-4",
         "transition-shadow duration-150",
-        "focus:outline-none focus:ring-2 focus:ring-primary/40",
+        "focus:outline-none focus:ring-2 focus:ring-accent/35",
         "disabled:opacity-40",
         className,
       )}
@@ -20,7 +17,7 @@ export function Input({ className, ...props }: React.ComponentProps<"input">) {
   );
 }
 
-/** Campo embebido en una fila de lista: sin relleno propio, la fila lo aporta. */
+/** Campo embebido en una fila: sin relleno propio, la fila lo aporta. */
 export function InlineInput({
   className,
   ...props
@@ -28,7 +25,7 @@ export function InlineInput({
   return (
     <input
       className={cn(
-        "text-body text-foreground placeholder:text-subtle-foreground",
+        "text-body text-ink placeholder:text-ink-faint",
         "min-h-touch w-full bg-transparent focus:outline-none",
         className,
       )}

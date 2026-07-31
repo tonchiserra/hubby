@@ -1,46 +1,37 @@
 "use client";
 
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
-import { CheckCircleIcon, CircleIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 /**
- * Círculo de Recordatorios: contorno cuando está vacío, círculo relleno con
- * tilde al marcarse. No es el cuadrado con tilde de la web.
+ * Sigue la regla de color de hubby: **lo resuelto se apaga**.
  *
- * `tone` define el color del estado marcado. Verde comunica "resuelto, lo
- * tenés" mejor que el azul de acento, que en iOS significa "seleccionado".
+ * Por eso el marcado NO lleva acento. Un producto que ya tenés en casa no
+ * reclama nada, así que se pinta en gris; el acento queda libre para señalar
+ * lo que sí requiere tu atención. Es al revés de lo que hace casi cualquier
+ * checkbox, y es justamente lo que hace legible la lista de un vistazo.
  */
 export function Checkbox({
   className,
-  tone = "primary",
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root> & {
-  tone?: "primary" | "positive";
-}) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "group grid size-6 shrink-0 place-items-center rounded-full",
-        "transition-transform active:scale-90",
-        "focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2",
+        "grid size-[22px] shrink-0 place-items-center rounded-full",
+        "border-[1.5px] border-line-strong transition-colors",
+        "data-[state=checked]:border-transparent data-[state=checked]:bg-ink-faint",
+        "active:scale-90",
+        "focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2",
         "disabled:opacity-40",
         className,
       )}
       {...props}
     >
-      <CircleIcon
-        size={24}
-        className="text-subtle-foreground group-data-[state=checked]:hidden"
-      />
-      <CheckCircleIcon
-        size={24}
-        weight="fill"
-        className={cn(
-          "hidden group-data-[state=checked]:block",
-          tone === "positive" ? "text-positive" : "text-primary",
-        )}
-      />
+      <CheckboxPrimitive.Indicator className="text-card">
+        <CheckIcon size={12} weight="bold" />
+      </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );
 }

@@ -100,7 +100,7 @@ function PromptForm({
       <div className="flex flex-col gap-1 px-4 pt-5 pb-4 text-center">
         <Dialog.Title className="text-headline">{title}</Dialog.Title>
         {description && (
-          <Dialog.Description className="text-footnote text-muted-foreground">
+          <Dialog.Description className="text-footnote text-ink-soft">
             {description}
           </Dialog.Description>
         )}
@@ -112,17 +112,17 @@ function PromptForm({
           autoFocus
           aria-label={title}
           className={cn(
-            "bg-background border-separator mt-2 h-8 w-full rounded-[6px] border px-2",
-            "text-subhead focus:border-primary focus:outline-none",
+            "bg-paper border-line mt-2 h-8 w-full rounded-[6px] border px-2",
+            "text-subhead focus:border-accent focus:outline-none",
           )}
         />
       </div>
 
-      <div className="border-separator grid grid-cols-2 border-t">
+      <div className="border-line grid grid-cols-2 border-t">
         <Dialog.Close asChild>
           <button
             type="button"
-            className="text-body text-primary border-separator h-11 border-r active:bg-fill-tertiary"
+            className="text-body text-accent border-line h-11 border-r active:bg-card-sunken"
           >
             Cancelar
           </button>
@@ -130,7 +130,7 @@ function PromptForm({
         <button
           type="submit"
           disabled={disabled}
-          className="text-body text-primary h-11 font-semibold active:bg-fill-tertiary disabled:opacity-40"
+          className="text-body text-accent h-11 font-semibold active:bg-card-sunken disabled:opacity-40"
         >
           {confirmLabel}
         </button>

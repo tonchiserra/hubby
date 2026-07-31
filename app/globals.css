@@ -4,47 +4,52 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
-   Colores del sistema de iOS
+   Sistema visual de hubby
    ---------------------------------------------------------------------------
-   Valores canónicos de Apple. No se usa una paleta genérica a propósito: el
-   tinte frío de los grises de iOS -tiran a azul, no a tierra- es la mitad de
-   lo que hace que una interfaz "se sienta" de Apple.
+   Derivado de las referencias que eligió Gonzalo -tableros cálidos, verde
+   salvia, tarjetas que flotan sobre papel- y no de la especificación de ningún
+   sistema operativo. Esa fue la lección de los dos intentos anteriores.
 
-   Los labels y separadores son translúcidos por diseño, igual que en iOS: así
-   funcionan igual sobre una tarjeta, sobre la página o sobre una superficie
-   con blur.
+   UNA SOLA REGLA DE COLOR, y de ahí sale la personalidad:
+
+       El acento marca lo que reclama tu atención. Lo resuelto se apaga.
+
+   Nada más lleva color. Ni la navegación, ni los encabezados, ni los íconos de
+   adorno. Así el verde nunca es decoración: cuando aparece, significa algo. Es
+   lo que permite que la interfaz sea mínima y aun así tenga voz.
+
+   El terracota queda reservado para lo destructivo. No para "falta algo": que
+   falte leche no es un error, es el estado normal del que trata la app.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Fondos agrupados. La página es más oscura que las tarjetas: es el patrón
-     "inset grouped" de iOS y de ahí sale la jerarquía, sin sombras. */
-  --background: #f2f2f7;          /* systemGroupedBackground */
-  --card: #ffffff;                /* secondarySystemGroupedBackground */
-  --card-elevated: #f2f2f7;       /* tertiarySystemGroupedBackground */
+  /* Papel y tinta. El lienzo es blanco roto cálido, no gris ni blanco puro:
+     es lo que comparten las tres referencias y lo que da la temperatura. */
+  --paper: #f3f2ed;
+  --card: #ffffff;
+  --card-sunken: #eceae3;
 
-  --foreground: #000000;                      /* label */
-  --muted-foreground: rgb(60 60 67 / 0.60);   /* secondaryLabel */
-  --subtle-foreground: rgb(60 60 67 / 0.30);  /* tertiaryLabel */
+  --ink: #1b1c19;
+  --ink-soft: #6f716a;
+  --ink-faint: #a2a49a;
 
-  --separator: rgb(60 60 67 / 0.29);
-  --separator-opaque: #c6c6c8;
+  --line: #e4e3da;
+  --line-strong: #d3d2c7;
 
-  --fill: rgb(120 120 128 / 0.20);            /* systemFill */
-  --fill-secondary: rgb(120 120 128 / 0.16);
-  --fill-tertiary: rgb(118 118 128 / 0.12);
+  /* Acento: verde salvia desaturado. Solo para lo que reclama atención. */
+  --accent: #4a7a5b;
+  --accent-hover: #3f6a4e;
+  --accent-ink: #ffffff;
+  --accent-wash: #e4ede6;
 
-  --primary: #007aff;                          /* systemBlue */
-  --primary-foreground: #ffffff;
-  --destructive: #ff3b30;                      /* systemRed */
-  --positive: #34c759;                         /* systemGreen */
-  --warning: #ff9500;                          /* systemOrange */
+  /* Destructivo. Terracota, no rojo de alarma: pertenece a la paleta. */
+  --danger: #a8503a;
+  --danger-wash: #f2e3dd;
 
-  /* Cristal de la tab bar y los headers de sheets. */
-  --glass: rgb(249 249 249 / 0.82);
-  --glass-border: rgb(60 60 67 / 0.29);
+  --shadow-card: 0 1px 2px rgb(27 28 25 / 0.04), 0 8px 24px rgb(27 28 25 / 0.06);
+  --shadow-float: 0 4px 8px rgb(27 28 25 / 0.06), 0 16px 40px rgb(27 28 25 / 0.10);
 
-  /* Los hairlines de iOS son un píxel físico, no un píxel CSS: en pantallas
-     retina eso es 1/2 o 1/3. Se resuelve escalando un pseudo-elemento. */
+  /* Los hairlines son un píxel físico, no CSS: en retina eso es 1/2 o 1/3. */
   --dpr: 1;
 }
 
@@ -56,97 +61,91 @@
 }
 
 .dark {
-  --background: #000000;
-  --card: #1c1c1e;
-  --card-elevated: #2c2c2e;
+  /* El oscuro también es cálido: se apaga el papel, no se cambia de material. */
+  --paper: #151613;
+  --card: #1e201c;
+  --card-sunken: #121310;
 
-  --foreground: #ffffff;
-  --muted-foreground: rgb(235 235 245 / 0.60);
-  --subtle-foreground: rgb(235 235 245 / 0.30);
+  --ink: #f2f1eb;
+  --ink-soft: #9b9d93;
+  --ink-faint: #6b6d64;
 
-  --separator: rgb(84 84 88 / 0.65);
-  --separator-opaque: #38383a;
+  --line: #2b2d28;
+  --line-strong: #3a3c36;
 
-  --fill: rgb(120 120 128 / 0.36);
-  --fill-secondary: rgb(120 120 128 / 0.32);
-  --fill-tertiary: rgb(118 118 128 / 0.24);
+  --accent: #7cb28c;
+  --accent-hover: #8dc09c;
+  --accent-ink: #12200f;
+  --accent-wash: #22301f;
 
-  --primary: #0a84ff;
-  --destructive: #ff453a;
-  --positive: #30d158;
-  --warning: #ff9f0a;
+  --danger: #d2775c;
+  --danger-wash: #33211b;
 
-  --glass: rgb(30 30 30 / 0.82);
-  --glass-border: rgb(84 84 88 / 0.65);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-float: 0 4px 8px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.45);
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-paper: var(--paper);
   --color-card: var(--card);
-  --color-card-elevated: var(--card-elevated);
-  --color-foreground: var(--foreground);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-subtle-foreground: var(--subtle-foreground);
-  --color-separator: var(--separator);
-  --color-separator-opaque: var(--separator-opaque);
-  --color-fill: var(--fill);
-  --color-fill-secondary: var(--fill-secondary);
-  --color-fill-tertiary: var(--fill-tertiary);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-destructive: var(--destructive);
-  --color-positive: var(--positive);
-  --color-warning: var(--warning);
-  --color-glass: var(--glass);
-  --color-glass-border: var(--glass-border);
+  --color-card-sunken: var(--card-sunken);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-wash: var(--accent-wash);
+  --color-danger: var(--danger);
+  --color-danger-wash: var(--danger-wash);
 
-  /* --- Tipografía --------------------------------------------------------
-     Sin webfonts. En Mac y iPhone esto resuelve a la San Francisco real que
-     renderiza el sistema: cero bytes, cero licencia y exacto por definición.
-     Ninguna fuente descargable puede igualar eso. */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-    Roboto, "Helvetica Neue", sans-serif;
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+
+  /* --- Tipografía -------------------------------------------------------
+     Instrument Sans tiene ejes de peso Y de ancho. Eso permite hacer toda la
+     jerarquía con una sola familia: los títulos van condensados y con peso,
+     el cuerpo en ancho normal. Una tipografía, dos ejes, cero necesidad de
+     una segunda familia. */
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
-  /* Tamaños de Dynamic Type de iOS, en su escala por defecto. */
-  --text-caption2: 0.6875rem;
-  --text-caption2--line-height: 0.8125rem;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 0.875rem;
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
   --text-footnote: 0.8125rem;
   --text-footnote--line-height: 1.125rem;
   --text-subhead: 0.9375rem;
-  --text-subhead--line-height: 1.25rem;
-  --text-callout: 1rem;
-  --text-callout--line-height: 1.3125rem;
-  --text-body: 1.0625rem;
-  --text-body--line-height: 1.375rem;
+  --text-subhead--line-height: 1.3125rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.4rem;
   --text-headline: 1.0625rem;
   --text-headline--line-height: 1.375rem;
   --text-headline--font-weight: 600;
   --text-title3: 1.25rem;
-  --text-title3--line-height: 1.5625rem;
-  --text-title2: 1.375rem;
+  --text-title3--line-height: 1.5rem;
+  --text-title3--font-weight: 600;
+  --text-title2: 1.5rem;
   --text-title2--line-height: 1.75rem;
-  --text-title2--font-weight: 700;
-  --text-title1: 1.75rem;
+  --text-title2--font-weight: 600;
+  --text-title1: 1.875rem;
   --text-title1--line-height: 2.125rem;
   --text-title1--font-weight: 700;
-  --text-largetitle: 2.125rem;
-  --text-largetitle--line-height: 2.5625rem;
-  --text-largetitle--font-weight: 700;
+  --text-display: 2.375rem;
+  --text-display--line-height: 2.5rem;
+  --text-display--font-weight: 700;
 
-  /* Radios de iOS: las listas agrupadas usan 10pt. Los 22px de antes hacían
-     que las tarjetas se leyeran como pastillas. */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.25rem;
+  /* --- Forma -------------------------------------------------------------
+     Radios generosos, como en las tres referencias. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.5rem;
 
   --spacing-touch: 2.75rem;
-  /* Indentación del separador: arranca donde arranca el texto, no en el borde
-     de la tarjeta. Es de los detalles más reconocibles de iOS. */
-  --spacing-inset: 1rem;
 }
 
 @layer base {
@@ -156,18 +155,25 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans text-body antialiased;
+    @apply bg-paper text-ink font-sans text-body antialiased;
     overscroll-behavior-y: none;
   }
 
   :focus-visible {
-    @apply outline-primary outline-2 outline-offset-2;
+    @apply outline-accent outline-2 outline-offset-2;
   }
 
   /* Las cifras nunca bailan al actualizarse. */
   :where(output, [data-numeric]) {
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* Títulos condensados: el eje de ancho es de dónde sale el carácter sin
+   sumar una segunda tipografía. */
+@utility display-tight {
+  font-stretch: 88%;
+  letter-spacing: -0.022em;
 }
 
 @utility hairline-b {
@@ -179,15 +185,8 @@
     right: 0;
     bottom: 0;
     height: 1px;
-    background-color: var(--separator);
-    /* Un píxel físico real: en retina se ve tan fino como en iOS. */
+    background-color: var(--line);
     transform: scaleY(calc(1 / var(--dpr)));
     transform-origin: bottom;
   }
-}
-
-@utility glass {
-  background-color: var(--glass);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }

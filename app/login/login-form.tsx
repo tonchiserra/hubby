@@ -64,7 +64,7 @@ export function LoginForm({ next }: { next?: string }) {
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-          className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 grid w-12 place-items-center transition-colors"
+          className="text-ink-soft hover:text-ink absolute inset-y-0 right-0 grid w-12 place-items-center transition-colors"
         >
           {visible ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
         </button>
@@ -76,7 +76,7 @@ export function LoginForm({ next }: { next?: string }) {
       </Button>
 
       {error && (
-        <p role="alert" className="text-footnote text-destructive px-1">
+        <p role="alert" className="text-footnote text-danger px-1">
           {error}
         </p>
       )}

@@ -5,7 +5,7 @@ import { MotionConfig } from "motion/react";
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 
 /** Debe coincidir con --background de cada modo en globals.css. */
-const CHROME_COLOR = { light: "#f2f2f7", dark: "#000000" } as const;
+const CHROME_COLOR = { light: "#f3f2ed", dark: "#151613" } as const;
 
 /**
  * Mantiene <meta name="theme-color"> en sincronía con el tema activo. Sin esto,

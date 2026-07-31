@@ -124,12 +124,12 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
           e.preventDefault();
           void onAdd();
         }}
-        className="bg-fill-tertiary flex h-touch items-center gap-2 rounded-md px-3"
+        className="bg-card-sunken flex h-touch items-center gap-2 rounded-lg px-3"
       >
         <MagnifyingGlassIcon
           size={18}
           weight="bold"
-          className="text-subtle-foreground shrink-0"
+          className="text-ink-faint shrink-0"
         />
         <input
           ref={inputRef}
@@ -139,7 +139,7 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
           aria-label="Buscar o agregar producto"
           autoComplete="off"
           maxLength={120}
-          className="text-body placeholder:text-subtle-foreground min-w-0 flex-1 bg-transparent focus:outline-none"
+          className="text-body placeholder:text-ink-faint min-w-0 flex-1 bg-transparent focus:outline-none"
         />
         {searching && (
           <button
@@ -149,7 +149,7 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
               inputRef.current?.focus();
             }}
             aria-label="Limpiar búsqueda"
-            className="text-subtle-foreground shrink-0"
+            className="text-ink-faint shrink-0"
           >
             <XCircleIcon size={20} weight="fill" />
           </button>
@@ -177,7 +177,7 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
             animate="animate"
             exit="exit"
             transition={springEnter}
-            className="text-footnote text-destructive overflow-hidden px-4"
+            className="text-footnote text-danger overflow-hidden px-4"
           >
             {error}
           </motion.p>
@@ -200,7 +200,7 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
                 last
                 asButton
                 onClick={() => void onAdd()}
-                leading={<PlusCircleIcon size={22} className="text-primary" />}
+                leading={<PlusCircleIcon size={22} className="text-accent" />}
                 label={
                   <span>
                     Agregar <span className="font-semibold">{query.trim()}</span>
@@ -271,7 +271,7 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={easeQuick}
-            className="text-subhead text-muted-foreground px-4 py-8 text-center"
+            className="text-subhead text-ink-soft px-4 py-8 text-center"
           >
             {searching
               ? `Nada coincide con “${query.trim()}”.`
@@ -293,7 +293,7 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
             className="flex justify-center overflow-hidden pt-2"
           >
             <Button
-              variant="tinted"
+              variant="soft"
               onClick={() => run({ type: "allBought" }, () => markAllBought())}
             >
               Ya compré todo
@@ -356,12 +356,11 @@ function ItemRow({
         // Lo que falta es lo accionable, así que se lee primero: fondo apenas
         // teñido y texto a plena fuerza. Lo que ya está en casa se corre a un
         // segundo plano.
-        className={cn(!item.active && "bg-primary/[0.04]")}
+        className={cn(!item.active && "bg-accent/[0.04]")}
         leading={
           <Checkbox
             id={inputId}
             checked={item.active}
-            tone="positive"
             onCheckedChange={onToggle}
             aria-label={
               item.active
@@ -376,8 +375,8 @@ function ItemRow({
             className={cn(
               "block cursor-pointer select-none",
               item.active
-                ? "text-muted-foreground"
-                : "text-foreground font-medium",
+                ? "text-ink-soft"
+                : "text-ink font-medium",
             )}
           >
             {item.name}
@@ -385,7 +384,7 @@ function ItemRow({
         }
         trailing={
           !item.active ? (
-            <span className="text-caption2 text-primary font-semibold uppercase">
+            <span className="text-micro text-accent font-semibold uppercase">
               Falta
             </span>
           ) : undefined

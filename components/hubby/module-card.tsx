@@ -1,16 +1,15 @@
 import Link from "next/link";
 import type { Icon } from "@phosphor-icons/react";
-import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { Badge } from "@/components/ui/badge";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 /**
- * Cada módulo del menú principal. En móvil ocupa el ancho completo y en
- * escritorio entra en una grilla de tres, así que el contenido se apoya arriba
- * y el pie queda alineado aunque los textos tengan distinto largo.
+ * Tarjeta de módulo del menú principal.
  *
- * `preview` lista ítems concretos del módulo -qué falta comprar, qué se está
- * leyendo- para que el panel se pueda revisar sin entrar a ningún módulo.
+ * Aplica la regla de color de hubby: el módulo que reclama atención se pinta
+ * entero con el acento; el que está al día queda en papel. No hace falta un
+ * contador de más para decir lo mismo dos veces —el color ya lo dice— así que
+ * el número solo aparece cuando aporta cantidad.
  */
 export function ModuleCard({
   href,
@@ -29,29 +28,40 @@ export function ModuleCard({
   preview?: string[];
   className?: string;
 }) {
+  const reclama = badge !== undefined && badge > 0;
+
   return (
     <Link
       href={href}
       className={cn(
-        "bg-card group flex min-h-touch flex-col gap-3 rounded-md p-4",
-        "transition-[transform,background-color] duration-150",
-        "active:scale-[0.98] active:bg-fill-tertiary md:hover:bg-fill-tertiary",
+        "group flex min-h-touch flex-col gap-4 rounded-lg p-5",
+        "shadow-card transition-[transform,box-shadow] duration-150",
+        "active:scale-[0.99] hover:shadow-float",
+        reclama ? "bg-accent text-accent-ink" : "bg-card text-ink",
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <IconComponent size={26} className="text-primary" />
-        {badge !== undefined && badge > 0 && (
-          <Badge variant="primary" size="sm">
+        <IconComponent
+          size={22}
+          className={reclama ? "opacity-80" : "text-ink-faint"}
+        />
+        {reclama && (
+          <span className="text-title3 leading-none font-bold tabular-nums">
             {badge}
-          </Badge>
+          </span>
         )}
       </div>
 
       {preview && preview.length > 0 && (
-        <ul className="flex flex-col gap-0.5">
+        <ul
+          className={cn(
+            "flex flex-col gap-1 text-subhead",
+            reclama ? "opacity-90" : "text-ink-soft",
+          )}
+        >
           {preview.map((item) => (
-            <li key={item} className="text-subhead truncate">
+            <li key={item} className="truncate">
               {item}
             </li>
           ))}
@@ -60,17 +70,26 @@ export function ModuleCard({
 
       <div className="mt-auto flex items-end justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-headline truncate">{label}</p>
+          <p className="text-headline display-tight truncate">{label}</p>
           {detail && (
-            <p className="text-footnote text-muted-foreground truncate">
+            <p
+              className={cn(
+                "truncate text-footnote",
+                reclama ? "opacity-75" : "text-ink-soft",
+              )}
+            >
               {detail}
             </p>
           )}
         </div>
-        <CaretRightIcon
-          size={14}
+        <ArrowUpRightIcon
+          size={15}
           weight="bold"
-          className="text-subtle-foreground mb-0.5 shrink-0"
+          className={cn(
+            "mb-0.5 shrink-0 transition-transform duration-150",
+            "group-hover:-translate-y-0.5 group-hover:translate-x-0.5",
+            reclama ? "opacity-70" : "text-ink-faint",
+          )}
         />
       </div>
     </Link>

@@ -9,7 +9,7 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="plain"
+      variant="quiet"
       size="icon"
       // La etiqueta nombra la acción y no el destino, así no depende del tema
       // activo -que en el servidor todavía no se conoce.
