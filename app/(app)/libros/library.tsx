@@ -13,8 +13,8 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
 import { StarRating } from "@/components/ui/star-rating";
+import { Tag, TagButton } from "@/components/ui/tag";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { cn } from "@/lib/utils";
 import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
@@ -31,11 +31,24 @@ const norm = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const ESTADOS: { value: BookStatus; label: string }[] = [
-  { value: "leyendo", label: "Leyendo" },
-  { value: "quiero", label: "Quiero leer" },
-  { value: "leido", label: "Leídos" },
-];
+/**
+ * Sin filtros, el orden es lo único que jerarquiza: primero lo que estás
+ * leyendo, después lo pendiente y al final lo terminado.
+ */
+const PESO: Record<BookStatus, number> = { leyendo: 0, quiero: 1, leido: 2 };
+
+const ETIQUETA: Record<BookStatus, string> = {
+  leyendo: "En progreso",
+  quiero: "No leído",
+  leido: "Leído",
+};
+
+/** Qué botón mostrar según dónde está el libro en su ciclo. */
+const SIGUIENTE: Record<BookStatus, { a: BookStatus; texto: string }> = {
+  quiero: { a: "leyendo", texto: "Empezar" },
+  leyendo: { a: "leido", texto: "Terminé" },
+  leido: { a: "leyendo", texto: "Releer" },
+};
 
 type Patch =
   | { type: "status"; id: string; status: BookStatus }
@@ -65,7 +78,6 @@ function apply(books: Book[], patch: Patch): Book[] {
 export function Library({ books }: { books: Book[] }) {
   const [shown, addPatch] = useOptimistic(books, apply);
   const [, startTransition] = useTransition();
-  const [filtro, setFiltro] = useState<BookStatus>("leyendo");
   const [error, setError] = useState<string | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [query, setQuery] = useState("");
@@ -82,18 +94,14 @@ export function Library({ books }: { books: Book[] }) {
       if (res?.error) setError(res.error);
     });
 
-  const conteos = useMemo(
-    () => ({
-      leyendo: shown.filter((b) => b.status === "leyendo").length,
-      quiero: shown.filter((b) => b.status === "quiero").length,
-      leido: shown.filter((b) => b.status === "leido").length,
-    }),
+  const ordenados = useMemo(
+    () =>
+      [...shown].sort(
+        (a, b) =>
+          PESO[a.status] - PESO[b.status] ||
+          a.title.localeCompare(b.title, "es"),
+      ),
     [shown],
-  );
-
-  const visibles = useMemo(
-    () => shown.filter((b) => b.status === filtro),
-    [shown, filtro],
   );
 
   async function buscar(q: string) {
@@ -130,7 +138,11 @@ export function Library({ books }: { books: Book[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-sand flex h-touch items-center gap-2 rounded-lg px-3.5">
-        <MagnifyingGlassIcon size={18} weight="bold" className="text-accent shrink-0 opacity-70" />
+        <MagnifyingGlassIcon
+          size={18}
+          weight="bold"
+          className="text-accent shrink-0 opacity-70"
+        />
         <input
           ref={inputRef}
           value={query}
@@ -203,31 +215,16 @@ export function Library({ books }: { books: Book[] }) {
         )}
       </AnimatePresence>
 
-      <Segmented
-        name="filtro-libros"
-        value={filtro}
-        onChange={setFiltro}
-        segments={ESTADOS.map((e) => ({ ...e, count: conteos[e.value] }))}
-      />
-
       {shown.length === 0 ? (
         <EmptyState
           icon={BookOpenIcon}
           title="Biblioteca vacía"
           description="Buscá arriba el primer libro que quieras anotar. Te traigo el autor, el año y la portada."
         />
-      ) : visibles.length === 0 ? (
-        <p className="text-subhead text-ink-soft px-4 py-10 text-center">
-          {filtro === "leyendo"
-            ? "No estás leyendo nada ahora mismo."
-            : filtro === "quiero"
-              ? "No tenés nada anotado para leer."
-              : "Todavía no terminaste ningún libro."}
-        </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-3">
           <AnimatePresence initial={false}>
-            {visibles.map((book) => (
+            {ordenados.map((book) => (
               <motion.div
                 key={book.id}
                 layout
@@ -236,6 +233,7 @@ export function Library({ books }: { books: Book[] }) {
                 animate="animate"
                 exit="exit"
                 transition={springLayout}
+                className="overflow-hidden"
               >
                 <Ficha
                   book={book}
@@ -264,6 +262,79 @@ export function Library({ books }: { books: Book[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Tarjeta horizontal: portada a la izquierda, todo lo demás a la derecha. */
+function Ficha({
+  book,
+  onStatus,
+  onRating,
+  onFormat,
+  onDelete,
+}: {
+  book: Book;
+  onStatus: (s: BookStatus) => void;
+  onRating: (r: number | null) => void;
+  onFormat: (f: Book["format"]) => void;
+  onDelete: () => void;
+}) {
+  const paso = SIGUIENTE[book.status];
+  const esAudio = book.format === "audiolibro";
+
+  return (
+    <article className="bg-card shadow-card flex gap-3.5 rounded-lg p-3">
+      <Portada url={book.cover_url} titulo={book.title} ancho={64} />
+
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="min-w-0">
+          <h3 className="text-subhead line-clamp-2 font-semibold">{book.title}</h3>
+          <p className="text-footnote text-ink-soft truncate">
+            {[book.author, book.year].filter(Boolean).join(" · ") || "Sin datos"}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* El estado en progreso reclama atención, así que lleva el acento
+              lleno; los otros dos son informativos. */}
+          <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
+            {ETIQUETA[book.status]}
+          </Tag>
+
+          {/* El formato es binario, así que la propia etiqueta lo alterna. */}
+          <TagButton
+            variant="wash"
+            onClick={() => onFormat(esAudio ? "libro" : "audiolibro")}
+            aria-label={esAudio ? "Cambiar a libro" : "Cambiar a audiolibro"}
+          >
+            {esAudio ? <HeadphonesIcon size={11} weight="fill" /> : <BookOpenIcon size={11} weight="fill" />}
+            {esAudio ? "Audiolibro" : "Libro"}
+          </TagButton>
+
+          {book.status === "leido" && book.read_year && (
+            <Tag variant="quiet">{book.read_year}</Tag>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <StarRating value={book.rating} onChange={onRating} size={15} />
+
+          <div className="flex shrink-0 items-center gap-1">
+            <Button size="sm" variant="soft" onClick={() => onStatus(paso.a)}>
+              {paso.texto}
+            </Button>
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={`Borrar ${book.title}`}
+              className="text-ink-faint hover:text-danger grid size-8 shrink-0 place-items-center rounded-full transition-colors active:scale-90"
+            >
+              <TrashIcon size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -349,79 +420,6 @@ function Resultados({
   );
 }
 
-function Ficha({
-  book,
-  onStatus,
-  onRating,
-  onFormat,
-  onDelete,
-}: {
-  book: Book;
-  onStatus: (s: BookStatus) => void;
-  onRating: (r: number | null) => void;
-  onFormat: (f: Book["format"]) => void;
-  onDelete: () => void;
-}) {
-  const siguiente: Record<BookStatus, { a: BookStatus; texto: string }> = {
-    quiero: { a: "leyendo", texto: "Empezar" },
-    leyendo: { a: "leido", texto: "Terminé" },
-    leido: { a: "leyendo", texto: "Releer" },
-  };
-  const paso = siguiente[book.status];
-
-  return (
-    <div className="bg-card shadow-card flex h-full flex-col gap-2.5 rounded-lg p-3">
-      <div className="relative">
-        <Portada url={book.cover_url} titulo={book.title} ancho={null} />
-        <button
-          type="button"
-          onClick={() => onFormat(book.format === "libro" ? "audiolibro" : "libro")}
-          aria-label={
-            book.format === "libro"
-              ? "Cambiar a audiolibro"
-              : "Cambiar a libro"
-          }
-          title={book.format === "libro" ? "Libro" : "Audiolibro"}
-          className="bg-card/90 text-ink absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full backdrop-blur-sm transition-transform active:scale-90"
-        >
-          {book.format === "audiolibro" ? (
-            <HeadphonesIcon size={14} weight="fill" />
-          ) : (
-            <BookOpenIcon size={14} weight="fill" />
-          )}
-        </button>
-      </div>
-
-      <div className="min-w-0">
-        <p className="text-footnote line-clamp-2 font-semibold">{book.title}</p>
-        {book.author && (
-          <p className="text-micro text-ink-soft truncate">{book.author}</p>
-        )}
-      </div>
-
-      <StarRating value={book.rating} onChange={onRating} size={15} />
-
-      <div className="mt-auto flex items-center gap-1">
-        <Button size="sm" variant="soft" className="flex-1" onClick={() => onStatus(paso.a)}>
-          {paso.texto}
-        </Button>
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={`Borrar ${book.title}`}
-          className="text-ink-faint hover:text-danger grid size-8 shrink-0 place-items-center rounded-full transition-colors active:scale-90"
-        >
-          <TrashIcon size={15} />
-        </button>
-      </div>
-
-      {book.status === "leido" && book.read_year && (
-        <p className="text-micro text-ink-faint -mt-1">Leído en {book.read_year}</p>
-      )}
-    </div>
-  );
-}
-
 function Portada({
   url,
   titulo,
@@ -429,37 +427,32 @@ function Portada({
 }: {
   url: string | null;
   titulo: string;
-  ancho: number | null;
+  ancho: number;
 }) {
-  const clases = ancho
-    ? "shrink-0 overflow-hidden rounded-sm"
-    : "aspect-[2/3] w-full overflow-hidden rounded-md";
+  const alto = Math.round(ancho * 1.5);
 
   if (!url) {
     return (
       <div
-        className={cn(
-          clases,
-          "bg-accent-wash text-accent grid place-items-center",
-        )}
-        style={ancho ? { width: ancho, height: ancho * 1.5 } : undefined}
+        className="bg-accent-wash text-accent grid shrink-0 place-items-center rounded-md"
+        style={{ width: ancho, height: alto }}
         aria-hidden
       >
-        <BookOpenIcon size={ancho ? 14 : 26} />
+        <BookOpenIcon size={Math.round(ancho / 2.4)} />
       </div>
     );
   }
 
   return (
     <div
-      className={cn(clases, "bg-accent-wash relative")}
-      style={ancho ? { width: ancho, height: ancho * 1.5 } : undefined}
+      className="bg-accent-wash relative shrink-0 overflow-hidden rounded-md"
+      style={{ width: ancho, height: alto }}
     >
       <Image
         src={url}
         alt={`Portada de ${titulo}`}
         fill
-        sizes={ancho ? `${ancho}px` : "(max-width: 640px) 50vw, 33vw"}
+        sizes={`${ancho}px`}
         className="object-cover"
         unoptimized
       />
