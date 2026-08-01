@@ -15,10 +15,12 @@ import { useViewTransitionNavigate } from "@/lib/view-transition";
 export function TransitionLink({
   href,
   className,
+  style,
   children,
 }: {
   href: string;
   className?: string;
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   const navegar = useViewTransitionNavigate();
@@ -34,6 +36,7 @@ export function TransitionLink({
         navegar(href);
       }}
       className={className}
+      style={style}
     >
       {children}
     </Link>

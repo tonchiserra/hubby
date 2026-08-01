@@ -4,7 +4,20 @@ import { partitionByUrgency, type ModulePanelEntry } from "./summary";
 import type { ModuleDefinition } from "./types";
 
 function mod(id: string, label: string): ModuleDefinition {
-  return { id, slug: id, label, icon: BasketIcon, description: "" };
+  return {
+    id,
+    slug: id,
+    label,
+    icon: BasketIcon,
+    description: "",
+    accent: {
+      solid: "#000",
+      ink: "#fff",
+      wash: "#eee",
+      solidDark: "#fff",
+      washDark: "#111",
+    },
+  };
 }
 
 function entry(id: string, label: string, urgency: number): ModulePanelEntry {

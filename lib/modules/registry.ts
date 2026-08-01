@@ -1,4 +1,4 @@
-import { BasketIcon } from "@phosphor-icons/react/dist/ssr";
+import { BasketIcon, BookOpenIcon } from "@phosphor-icons/react/dist/ssr";
 import type { ModuleDefinition } from "./types";
 
 /**
@@ -22,6 +22,22 @@ export const MODULES: ModuleDefinition[] = [
       wash: "#e0ebe3",
       solidDark: "#7cb28c",
       washDark: "#22301f",
+    },
+  },
+  {
+    id: "book",
+    slug: "libros",
+    label: "Libros",
+    icon: BookOpenIcon,
+    description: "Lo que leíste, lo que estás leyendo y lo que querés leer.",
+    // Azul pizarra: bien distinto del salvia del supermercado, y sin acercarse
+    // al terracota, que está reservado para lo destructivo.
+    accent: {
+      solid: "#4a6285",
+      ink: "#ffffff",
+      wash: "#e4e9f0",
+      solidDark: "#8fa8c9",
+      washDark: "#1e2733",
     },
   },
 ];

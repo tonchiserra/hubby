@@ -45,6 +45,53 @@ export type Database = {
         };
         Relationships: [];
       };
+
+      books: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          author: string | null;
+          year: number | null;
+          cover_url: string | null;
+          olid: string | null;
+          status: BookStatus;
+          format: BookFormat;
+          /** 0 a 5 en pasos de 0.5. null = sin calificar. */
+          rating: number | null;
+          /** Año en que se leyó, no fecha. */
+          read_year: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          title: string;
+          author?: string | null;
+          year?: number | null;
+          cover_url?: string | null;
+          olid?: string | null;
+          status?: BookStatus;
+          format?: BookFormat;
+          rating?: number | null;
+          read_year?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          title?: string;
+          author?: string | null;
+          year?: number | null;
+          cover_url?: string | null;
+          olid?: string | null;
+          status?: BookStatus;
+          format?: BookFormat;
+          rating?: number | null;
+          read_year?: number | null;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: Record<never, never>;
@@ -53,4 +100,8 @@ export type Database = {
   };
 };
 
+export type BookStatus = "quiero" | "leyendo" | "leido";
+export type BookFormat = "libro" | "audiolibro";
+
 export type GroceryItem = Database["public"]["Tables"]["grocery_items"]["Row"];
+export type Book = Database["public"]["Tables"]["books"]["Row"];

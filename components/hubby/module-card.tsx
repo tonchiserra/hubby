@@ -21,6 +21,7 @@ export function ModuleCard({
   preview,
   slug,
   className,
+  style,
 }: {
   href: string;
   label: string;
@@ -31,12 +32,15 @@ export function ModuleCard({
   /** Slug del módulo: nombra el elemento compartido de la transición. */
   slug?: string;
   className?: string;
+  /** Variables CSS del módulo: así cada tarjeta lleva su propio color. */
+  style?: React.CSSProperties;
 }) {
   const reclama = badge !== undefined && badge > 0;
 
   return (
     <TransitionLink
       href={href}
+      style={style}
       className={cn(
         "group flex min-h-touch flex-col gap-4 rounded-lg p-5",
         "shadow-card transition-[transform,box-shadow] duration-150",
