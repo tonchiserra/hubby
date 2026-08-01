@@ -14,22 +14,15 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { StarRating } from "@/components/ui/star-rating";
-import { TagButton } from "@/components/ui/tag";
-import { PromptDialog } from "@/components/ui/prompt-dialog";
+import { Tag } from "@/components/ui/tag";
+import { BookEditor, type BookDraft } from "./book-editor";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { ListGroup } from "@/components/hubby/list";
 import { cn } from "@/lib/utils";
 import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Book, BookStatus } from "@/lib/supabase/types";
-import {
-  addBook,
-  deleteBook,
-  renameBook,
-  setFormat,
-  setRating,
-  setStatus,
-} from "./actions";
+import { addBook, deleteBook, updateBook } from "./actions";
 import { searchOpenLibrary } from "./search-action";
 import type { BookResult } from "./open-library";
 
@@ -53,41 +46,25 @@ const ETIQUETA: Record<BookStatus, string> = {
   leido: "Leído",
 };
 
-/**
- * La etiqueta de estado ES el control: tocarla avanza al siguiente. El ciclo
- * sigue el recorrido natural de un libro, y desde "leído" vuelve al principio
- * para poder corregir sin buscar otro control.
- */
-const SIGUIENTE: Record<BookStatus, BookStatus> = {
-  quiero: "leyendo",
-  leyendo: "leido",
-  leido: "quiero",
-};
 
 type Patch =
-  | { type: "status"; id: string; status: BookStatus }
-  | { type: "rating"; id: string; rating: number | null }
-  | { type: "format"; id: string; format: Book["format"] }
-  | { type: "rename"; id: string; title: string }
+  | { type: "save"; id: string; draft: BookDraft }
   | { type: "delete"; id: string };
 
 function apply(books: Book[], patch: Patch): Book[] {
   switch (patch.type) {
-    case "status":
+    case "save":
       return books.map((b) =>
-        b.id === patch.id ? { ...b, status: patch.status } : b,
-      );
-    case "rating":
-      return books.map((b) =>
-        b.id === patch.id ? { ...b, rating: patch.rating } : b,
-      );
-    case "format":
-      return books.map((b) =>
-        b.id === patch.id ? { ...b, format: patch.format } : b,
-      );
-    case "rename":
-      return books.map((b) =>
-        b.id === patch.id ? { ...b, title: patch.title } : b,
+        b.id === patch.id
+          ? {
+              ...b,
+              title: patch.draft.title,
+              status: patch.draft.status,
+              format: patch.draft.format,
+              rating: patch.draft.rating,
+              read_year: patch.draft.readYear,
+            }
+          : b,
       );
     case "delete":
       return books.filter((b) => b.id !== patch.id);
@@ -258,21 +235,6 @@ export function Library({ books }: { books: Book[] }) {
                 <Ficha
                   book={book}
                   last={i === ordenados.length - 1}
-                  onStatus={(status) =>
-                    run({ type: "status", id: book.id, status }, () =>
-                      setStatus(book.id, status),
-                    )
-                  }
-                  onRating={(rating) =>
-                    run({ type: "rating", id: book.id, rating }, () =>
-                      setRating(book.id, rating),
-                    )
-                  }
-                  onFormat={(format) =>
-                    run({ type: "format", id: book.id, format }, () =>
-                      setFormat(book.id, format),
-                    )
-                  }
                   onEdit={() => setEditando(book)}
                   onDelete={() =>
                     run({ type: "delete", id: book.id }, () => deleteBook(book.id))
@@ -284,19 +246,15 @@ export function Library({ books }: { books: Book[] }) {
         </ListGroup>
       )}
 
-      <PromptDialog
-        open={editando !== null}
+      <BookEditor
+        book={editando}
         onOpenChange={(open) => !open && setEditando(null)}
-        title="Renombrar libro"
-        initialValue={editando?.title ?? ""}
-        placeholder="Título del libro"
-        maxLength={300}
-        onConfirm={(title) => {
+        onSave={(draft) => {
           const libro = editando;
           if (!libro) return;
           setError(null);
-          run({ type: "rename", id: libro.id, title }, () =>
-            renameBook(libro.id, title),
+          run({ type: "save", id: libro.id, draft }, () =>
+            updateBook(libro.id, draft),
           );
         }}
       />
@@ -307,23 +265,19 @@ export function Library({ books }: { books: Book[] }) {
 /**
  * Fila de libro. Misma anatomía que las del supermercado: todas dentro de una
  * sola tarjeta, separadas por hairlines indentados al texto, y con editar y
- * borrar por swipe. Antes eran tarjetas sueltas con sombra propia, que era otro
- * lenguaje visual dentro de la misma app.
+ * borrar por swipe.
+ *
+ * Todo lo que muestra es de solo lectura. Recorrer una lista no puede cambiar
+ * datos por accidente: para eso está el editor, al que se llega deslizando.
  */
 function Ficha({
   book,
   last,
-  onStatus,
-  onRating,
-  onFormat,
   onEdit,
   onDelete,
 }: {
   book: Book;
   last: boolean;
-  onStatus: (s: BookStatus) => void;
-  onRating: (r: number | null) => void;
-  onFormat: (f: Book["format"]) => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -353,8 +307,6 @@ function Ficha({
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <div className="min-w-0">
             <h3 className="text-body line-clamp-1 font-medium">{book.title}</h3>
-            {/* Autor y año en segundo plano: el título es lo que se busca al
-                recorrer la lista. */}
             <p className="text-micro text-ink-faint truncate">
               {[
                 book.author,
@@ -368,36 +320,23 @@ function Ficha({
             </p>
           </div>
 
-          {/* Etiquetas y estrellas en la misma línea: la fila queda compacta,
-              como las del supermercado. */}
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-            <TagButton
-              variant={book.status === "leyendo" ? "accent" : "quiet"}
-              onClick={() => onStatus(SIGUIENTE[book.status])}
-              aria-label={`${ETIQUETA[book.status]}. Tocar para pasar a ${ETIQUETA[SIGUIENTE[book.status]].toLowerCase()}`}
-            >
+            {/* Solo el estado en progreso reclama atención. */}
+            <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
               {ETIQUETA[book.status]}
-            </TagButton>
-
-            <TagButton
-              variant="wash"
-              onClick={() => onFormat(esAudio ? "libro" : "audiolibro")}
-              aria-label={esAudio ? "Cambiar a libro" : "Cambiar a audiolibro"}
-            >
+            </Tag>
+            <Tag variant="wash">
               {esAudio ? (
                 <HeadphonesIcon size={11} weight="fill" />
               ) : (
                 <BookOpenIcon size={11} weight="fill" />
               )}
               {esAudio ? "Audiolibro" : "Libro"}
-            </TagButton>
+            </Tag>
 
-            <StarRating
-              value={book.rating}
-              onChange={onRating}
-              size={14}
-              className="ml-auto"
-            />
+            {book.rating !== null && (
+              <StarRating value={book.rating} readOnly size={14} className="ml-auto" />
+            )}
           </div>
         </div>
       </article>

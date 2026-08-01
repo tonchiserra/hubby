@@ -57,100 +57,60 @@ export async function addBook(input: {
   return {};
 }
 
+
+
+
+
+
 /**
- * Cambia el estado. Al pasar a "leído" se sella el año en curso si no había
- * uno; al salir de "leído" se limpia, para que no quede un año colgado de un
- * libro que ya no terminaste.
+ * Guarda todos los campos editables de una. El editor es un formulario: mandar
+ * una request por campo dejaría el libro en estados intermedios si alguna falla.
  */
-export async function setStatus(
+export async function updateBook(
   id: string,
-  status: BookStatus,
+  input: {
+    title: string;
+    status: BookStatus;
+    format: BookFormat;
+    rating: number | null;
+    readYear: number | null;
+  },
 ): Promise<ActionResult> {
-  const supabase = await createClient();
+  const title = input.title.trim().replace(/\s+/g, " ");
+  if (!title) return { error: "El título no puede quedar vacío." };
+  if (title.length > 300) return { error: "El título es demasiado largo." };
 
-  const patch: { status: BookStatus; read_year?: number | null } = { status };
-  if (status === "leido") {
-    const { data } = await supabase
-      .from("books")
-      .select("read_year")
-      .eq("id", id)
-      .single();
-    if (!data?.read_year) patch.read_year = new Date().getFullYear();
-  } else {
-    patch.read_year = null;
-  }
-
-  const { error } = await supabase.from("books").update(patch).eq("id", id);
-  if (error) return { error: describe(error, "No se pudo cambiar el estado.") };
-  revalidate();
-  return {};
-}
-
-/** De 0 a 5 en pasos de 0.5. null limpia la valoración. */
-export async function setRating(
-  id: string,
-  rating: number | null,
-): Promise<ActionResult> {
+  const { rating } = input;
   if (rating !== null && (rating < 0 || rating > 5 || (rating * 2) % 1 !== 0)) {
     return { error: "La valoración tiene que ir de 0 a 5, de a medios puntos." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("books").update({ rating }).eq("id", id);
-  if (error) return { error: describe(error, "No se pudo guardar la valoración.") };
-  revalidate();
-  return {};
-}
-
-export async function setFormat(
-  id: string,
-  format: BookFormat,
-): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { error } = await supabase.from("books").update({ format }).eq("id", id);
-  if (error) return { error: describe(error, "No se pudo cambiar el formato.") };
-  revalidate();
-  return {};
-}
-
-export async function setReadYear(
-  id: string,
-  year: number | null,
-): Promise<ActionResult> {
   const actual = new Date().getFullYear();
-  if (year !== null && (year < 1900 || year > actual + 1)) {
+  // El año solo tiene sentido en un libro terminado; en cualquier otro estado
+  // se limpia para que no quede colgado de algo que ya no leíste.
+  let readYear = input.status === "leido" ? input.readYear : null;
+  if (input.status === "leido" && readYear === null) readYear = actual;
+  if (readYear !== null && (readYear < 1900 || readYear > actual + 1)) {
     return { error: `El año tiene que estar entre 1900 y ${actual + 1}.` };
   }
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("books")
-    .update({ read_year: year })
-    .eq("id", id);
-  if (error) return { error: describe(error, "No se pudo guardar el año.") };
-  revalidate();
-  return {};
-}
-
-/** Cambia el título, respetando la unicidad de la biblioteca. */
-export async function renameBook(
-  id: string,
-  title: string,
-): Promise<ActionResult> {
-  const limpio = title.trim().replace(/\s+/g, " ");
-  if (!limpio) return { error: "El título no puede quedar vacío." };
-  if (limpio.length > 300) return { error: "El título es demasiado largo." };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("books")
-    .update({ title: limpio })
+    .update({
+      title,
+      status: input.status,
+      format: input.format,
+      rating,
+      read_year: readYear,
+    })
     .eq("id", id);
 
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
-      return { error: `Ya tenés un libro llamado “${limpio}”.` };
+      return { error: `Ya tenés un libro llamado “${title}”.` };
     }
-    return { error: describe(error, "No se pudo renombrar el libro.") };
+    return { error: describe(error, "No se pudo guardar el libro.") };
   }
 
   revalidate();
