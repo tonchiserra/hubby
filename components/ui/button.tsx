@@ -16,8 +16,8 @@ const button = cva(
   {
     variants: {
       variant: {
-        /** La acción principal. Lleva el acento porque reclama atención. */
-        solid: "bg-accent text-accent-ink hover:bg-accent-hover rounded-full",
+        /** La acción principal. Degradado del acento, sutil a propósito. */
+        solid: "bg-accent-gradient text-accent-ink hover:brightness-105 rounded-full",
         /** Secundaria: papel hundido, sin color. */
         soft: "bg-sand text-ink hover:bg-sand-deep rounded-full",
         /** Solo texto. Sin color salvo que sea la acción principal. */

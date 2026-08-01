@@ -389,7 +389,7 @@ function Ficha({
             </div>
 
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-              <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
+              <Tag variant={book.status === "leyendo" ? "accent" : "wash"}>
                 {ETIQUETA[book.status]}
               </Tag>
               <Tag variant="wash">{esAudio ? "Audio" : "Libro"}</Tag>

@@ -5,12 +5,13 @@ import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 /**
- * Sigue la regla de color de hubby: **lo resuelto se apaga**.
+ * Sigue la regla de color de hubby: **el color marca pertenencia**.
  *
- * Por eso el marcado NO lleva acento. Un producto que ya tenés en casa no
- * reclama nada, así que se pinta en gris; el acento queda libre para señalar
- * lo que sí requiere tu atención. Es al revés de lo que hace casi cualquier
- * checkbox, y es justamente lo que hace legible la lista de un vistazo.
+ * La marca de "hecho" lleva el acento del módulo, no gris. Antes se apagaba
+ * -la regla vieja decía que lo resuelto pierde color- y como el checkbox es el
+ * control principal de Supermercado, esa pantalla terminaba monocromática con
+ * el uso normal de la app. La urgencia la marcan el peso y el relleno, no la
+ * ausencia de color.
  */
 export function Checkbox({
   className,
@@ -21,7 +22,7 @@ export function Checkbox({
       className={cn(
         "grid size-[22px] shrink-0 place-items-center rounded-full",
         "border-[1.5px] border-line-strong transition-colors",
-        "data-[state=checked]:border-transparent data-[state=checked]:bg-ink-faint",
+        "data-[state=checked]:border-transparent data-[state=checked]:bg-accent-gradient",
         "active:scale-90",
         "focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2",
         "disabled:opacity-40",
@@ -29,7 +30,9 @@ export function Checkbox({
       )}
       {...props}
     >
-      <CheckboxPrimitive.Indicator className="text-card">
+      {/* La marca va sobre el acento, así que usa su tinta -antes iba sobre
+          gris y por eso tomaba el color de la tarjeta. */}
+      <CheckboxPrimitive.Indicator className="text-accent-ink">
         <CheckIcon size={12} weight="bold" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

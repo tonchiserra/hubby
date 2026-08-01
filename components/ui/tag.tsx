@@ -12,18 +12,16 @@ const tag = cva(
   {
     variants: {
       variant: {
-        /** Estado que reclama atención: lleva el acento del módulo. */
+        /** Reclama atención: relleno sólido. */
         accent: "bg-accent text-accent-ink",
-        /** Estado presente pero resuelto: lavado del acento. */
+        /** Pertenece al módulo y está resuelto: lavado del acento. */
         wash: "bg-accent-wash text-accent",
-        /** Dato neutro, sin urgencia. */
-        quiet: "bg-sand text-ink-soft",
       },
       interactive: {
         true: "transition-transform active:scale-95 cursor-pointer",
       },
     },
-    defaultVariants: { variant: "quiet" },
+    defaultVariants: { variant: "wash" },
   },
 );
 

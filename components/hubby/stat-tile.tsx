@@ -31,7 +31,16 @@ export function StatTile({
       >
         {label}
       </span>
-      <span className="text-title1 display-tight tabular-nums">{value}</span>
+      <span
+        className={cn(
+          "text-title1 display-tight tabular-nums",
+          // El número es el dato del módulo, así que lleva su color aunque no
+          // reclame nada. Sobre acento sólido ya es tinta clara.
+          reclama ? "text-accent-ink" : "text-accent",
+        )}
+      >
+        {value}
+      </span>
       {hint && (
         <span
           className={cn("text-caption", reclama ? "opacity-75" : "text-ink-soft")}
