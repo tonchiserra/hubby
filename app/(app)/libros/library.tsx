@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { AnimatePresence, Reorder, motion, useDragControls } from "motion/react";
-import Image from "next/image";
 import {
   BookOpenIcon,
   MagnifyingGlassIcon,
@@ -59,6 +58,8 @@ function apply(books: Book[], patch: Patch): Book[] {
           ? {
               ...b,
               title: patch.draft.title,
+              author: patch.draft.author,
+              cover_url: patch.draft.coverUrl,
               status: patch.draft.status,
               format: patch.draft.format,
               rating: patch.draft.rating,
@@ -510,18 +511,19 @@ function Portada({
   }
 
   return (
-    <div
-      className="bg-accent-wash relative shrink-0 overflow-hidden rounded-md"
+    // eslint-disable-next-line @next/next/no-img-element -- ver comentario abajo
+    <img
+      src={url}
+      alt={`Portada de ${titulo}`}
+      loading="lazy"
+      width={ancho}
+      height={alto}
+      // <img> y no next/image: ya iba unoptimized, así que no había nada que
+      // optimizar, y next/image solo permite dominios declarados de antemano.
+      // Ahora la portada puede venir de donde sea, incluida una URL pegada a
+      // mano en el editor.
+      className="bg-accent-wash shrink-0 rounded-md object-cover"
       style={{ width: ancho, height: alto }}
-    >
-      <Image
-        src={url}
-        alt={`Portada de ${titulo}`}
-        fill
-        sizes={`${ancho}px`}
-        className="object-cover"
-        unoptimized
-      />
-    </div>
+    />
   );
 }

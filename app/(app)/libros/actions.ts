@@ -80,6 +80,8 @@ export async function updateBook(
   id: string,
   input: {
     title: string;
+    author: string | null;
+    coverUrl: string | null;
     status: BookStatus;
     format: BookFormat;
     rating: number | null;
@@ -104,11 +106,23 @@ export async function updateBook(
     return { error: `El año tiene que estar entre 1900 y ${actual + 1}.` };
   }
 
+  const autor = input.author?.trim() || null;
+  if (autor && autor.length > 200) return { error: "El autor es demasiado largo." };
+
+  // Solo http(s): una URL con otro esquema no va a cargar y puede ser un
+  // vector raro. Vacío significa "sin portada", no "dejala como estaba".
+  const portada = input.coverUrl?.trim() || null;
+  if (portada && !/^https?:\/\//i.test(portada)) {
+    return { error: "La dirección de la portada tiene que empezar con http." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("books")
     .update({
       title,
+      author: autor,
+      cover_url: portada,
       status: input.status,
       format: input.format,
       rating,

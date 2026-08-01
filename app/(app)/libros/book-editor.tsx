@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Dialog } from "radix-ui";
+import { BookOpenIcon } from "@phosphor-icons/react/dist/ssr";
 import { Segmented } from "@/components/ui/segmented";
 import { StarRating } from "@/components/ui/star-rating";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,8 @@ import type { Book, BookFormat, BookStatus } from "@/lib/supabase/types";
 
 export type BookDraft = {
   title: string;
+  author: string | null;
+  coverUrl: string | null;
   status: BookStatus;
   format: BookFormat;
   rating: number | null;
@@ -69,6 +72,8 @@ function Formulario({
   onSave: (draft: BookDraft) => void;
 }) {
   const [title, setTitle] = useState(book.title);
+  const [author, setAuthor] = useState(book.author ?? "");
+  const [coverUrl, setCoverUrl] = useState(book.cover_url ?? "");
   const [status, setStatus] = useState<BookStatus>(book.status);
   const [format, setFormat] = useState<BookFormat>(book.format);
   const [rating, setRating] = useState<number | null>(book.rating);
@@ -77,16 +82,19 @@ function Formulario({
   );
 
   const limpio = title.trim();
-  const anioValido =
-    readYear === "" || /^\d{4}$/.test(readYear.trim());
+  const anioValido = readYear === "" || /^\d{4}$/.test(readYear.trim());
+  const portada = coverUrl.trim();
+  const portadaValida = portada === "" || /^https?:\/\//i.test(portada);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!limpio || !anioValido) return;
+        if (!limpio || !anioValido || !portadaValida) return;
         onSave({
           title: limpio,
+          author: author.trim() || null,
+          coverUrl: coverUrl.trim() || null,
           status,
           format,
           rating,
@@ -108,6 +116,50 @@ function Formulario({
             aria-label="Título"
             className="bg-sand text-body text-ink h-10 w-full rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-accent/35"
           />
+        </Campo>
+
+        <Campo etiqueta="Autor">
+          <input
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            maxLength={200}
+            placeholder="Sin autor"
+            aria-label="Autor"
+            className="bg-sand text-body text-ink placeholder:text-ink-faint h-10 w-full rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-accent/35"
+          />
+        </Campo>
+
+        <Campo etiqueta="Portada">
+          <div className="flex items-center gap-3">
+            {/* Vista previa en vivo: pegás la dirección y ves si es la correcta
+                antes de guardar. */}
+            {portada && portadaValida ? (
+              // La portada puede venir de cualquier dominio, y next/image
+              // solo permite los declarados de antemano.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={portada}
+                alt=""
+                className="bg-sand h-[54px] w-9 shrink-0 rounded-sm object-cover"
+              />
+            ) : (
+              <div className="bg-sand grid h-[54px] w-9 shrink-0 place-items-center rounded-sm">
+                <BookOpenIcon size={14} className="text-ink-faint" />
+              </div>
+            )}
+            <input
+              value={coverUrl}
+              onChange={(e) => setCoverUrl(e.target.value)}
+              placeholder="https://…"
+              inputMode="url"
+              aria-label="Dirección de la portada"
+              className={cn(
+                "bg-sand text-footnote text-ink placeholder:text-ink-faint h-10 min-w-0 flex-1 rounded-md px-3",
+                "focus:outline-none focus:ring-2 focus:ring-accent/35",
+                !portadaValida && "ring-2 ring-danger",
+              )}
+            />
+          </div>
         </Campo>
 
         <Campo etiqueta="Estado">
@@ -180,7 +232,7 @@ function Formulario({
         </button>
         <button
           type="submit"
-          disabled={!limpio || !anioValido}
+          disabled={!limpio || !anioValido || !portadaValida}
           className="text-body text-accent h-12 font-semibold active:bg-card-sunken disabled:opacity-40"
         >
           Guardar
