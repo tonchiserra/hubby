@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, Reorder, motion, useDragControls } from "motion/react";
 import Image from "next/image";
 import {
   BookOpenIcon,
@@ -19,9 +19,9 @@ import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { ListGroup } from "@/components/hubby/list";
 import { cn } from "@/lib/utils";
-import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
+import { blockVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Book, BookStatus } from "@/lib/supabase/types";
-import { addBook, deleteBook, updateBook } from "./actions";
+import { addBook, deleteBook, reorderBooks, updateBook } from "./actions";
 import { searchBooks, type BookResult } from "./open-library";
 
 const norm = (s: string) =>
@@ -32,17 +32,10 @@ const norm = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/**
- * Orden: primero el año, del más reciente al más viejo; a igual año, lo editado
- * más recientemente. Los libros sin año van al final —no tienen fecha con la
- * cual competir— y entre ellos también manda la última edición.
- */
-function comparar(a: Book, b: Book): number {
-  const anioA = a.read_year ?? -Infinity;
-  const anioB = b.read_year ?? -Infinity;
-  if (anioA !== anioB) return anioB - anioA;
-  return b.updated_at.localeCompare(a.updated_at);
-}
+/** Cuánto hay que mantener apretado antes de que arranque el arrastre. */
+const PRESION_MS = 400;
+/** Movimiento horizontal que descarta el arrastre: eso es un swipe. */
+const SLOP_PX = 8;
 
 /** Lo que se espera a que dejes de escribir antes de consultar. */
 const DEBOUNCE_MS = 400;
@@ -90,6 +83,8 @@ export function Library({ books }: { books: Book[] }) {
     null,
   );
   const [editando, setEditando] = useState<Book | null>(null);
+  const [ordenLocal, setOrdenLocal] = useState<Book[] | null>(null);
+  const [arrastrando, setArrastrando] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const run = (patch: Patch, action: () => Promise<{ error?: string }>) =>
@@ -99,7 +94,23 @@ export function Library({ books }: { books: Book[] }) {
       if (res?.error) setError(res.error);
     });
 
-  const ordenados = useMemo(() => [...shown].sort(comparar), [shown]);
+  /**
+   * Orden que se está viendo. Mientras arrastrás manda el local; cuando cambia
+   * la composición de la lista -agregaste o borraste- se vuelve al del
+   * servidor. Se deduce en el render, sin efectos que sincronicen nada.
+   */
+  const ordenados = useMemo(() => {
+    if (!ordenLocal) return shown;
+
+    const porId = new Map(shown.map((b) => [b.id, b]));
+    const mismosLibros =
+      ordenLocal.length === shown.length &&
+      ordenLocal.every((b) => porId.has(b.id));
+
+    // Se conserva el orden local pero con los datos frescos del servidor: si
+    // editaste un libro mientras tanto, se ve el cambio sin perder tu orden.
+    return mismosLibros ? ordenLocal.map((b) => porId.get(b.id)!) : shown;
+  }, [ordenLocal, shown]);
 
   const q = query.trim();
   const corta = q.length < 3;
@@ -231,30 +242,32 @@ export function Library({ books }: { books: Book[] }) {
           description="Buscá arriba el primer libro que quieras anotar. Te traigo el autor, el año y la portada."
         />
       ) : (
-        <ListGroup footer="Deslizá un libro para editarlo o borrarlo.">
-          <AnimatePresence initial={false}>
+        <ListGroup footer="Mantené apretado para reordenar. Deslizá para editar o borrar.">
+          <Reorder.Group
+            axis="y"
+            values={ordenados}
+            onReorder={setOrdenLocal}
+            as="div"
+          >
             {ordenados.map((book, i) => (
-              <motion.div
+              <Ficha
                 key={book.id}
-                layout
-                variants={rowVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={springLayout}
-                className="overflow-hidden"
-              >
-                <Ficha
-                  book={book}
-                  last={i === ordenados.length - 1}
-                  onEdit={() => setEditando(book)}
-                  onDelete={() =>
-                    run({ type: "delete", id: book.id }, () => deleteBook(book.id))
-                  }
-                />
-              </motion.div>
+                book={book}
+                last={i === ordenados.length - 1}
+                arrastrando={arrastrando === book.id}
+                onArrastrar={(activo) => setArrastrando(activo ? book.id : null)}
+                onSoltar={() => {
+                  setArrastrando(null);
+                  // Se guarda el orden que quedó a la vista.
+                  void reorderBooks(ordenados.map((b) => b.id));
+                }}
+                onEdit={() => setEditando(book)}
+                onDelete={() =>
+                  run({ type: "delete", id: book.id }, () => deleteBook(book.id))
+                }
+              />
             ))}
-          </AnimatePresence>
+          </Reorder.Group>
         </ListGroup>
       )}
 
@@ -275,74 +288,119 @@ export function Library({ books }: { books: Book[] }) {
 }
 
 /**
- * Fila de libro. Misma anatomía que las del supermercado: todas dentro de una
- * sola tarjeta, separadas por hairlines indentados al texto, y con editar y
- * borrar por swipe.
+ * Fila de libro.
  *
- * Todo lo que muestra es de solo lectura. Recorrer una lista no puede cambiar
- * datos por accidente: para eso está el editor, al que se llega deslizando.
+ * Conviven dos gestos sobre la misma fila y se distinguen por intención:
+ * moverse en horizontal enseguida es un swipe -editar o borrar-, y mantener
+ * apretado sin moverse arranca el arrastre para reordenar. Mientras se
+ * reordena, el swipe queda apagado para que no peleen por el mismo dedo.
  */
 function Ficha({
   book,
   last,
+  arrastrando,
+  onArrastrar,
+  onSoltar,
   onEdit,
   onDelete,
 }: {
   book: Book;
   last: boolean;
+  arrastrando: boolean;
+  onArrastrar: (activo: boolean) => void;
+  onSoltar: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const esAudio = book.format === "audiolibro";
+  const controles = useDragControls();
+  const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inicio = useRef({ x: 0, y: 0 });
+
+  const cancelarPresion = () => {
+    if (temporizador.current) {
+      clearTimeout(temporizador.current);
+      temporizador.current = null;
+    }
+  };
 
   return (
-    <SwipeRow
-      actions={[
-        { label: "Editar", icon: PencilSimpleIcon, onSelect: onEdit },
-        {
-          label: "Borrar",
-          icon: TrashIcon,
-          tone: "destructive",
-          onSelect: onDelete,
-        },
-      ]}
+    <Reorder.Item
+      value={book}
+      // El arrastre no lo dispara Motion: lo dispara la presión sostenida, para
+      // no robarle el gesto horizontal al swipe.
+      dragListener={false}
+      dragControls={controles}
+      onDragEnd={onSoltar}
+      transition={springLayout}
+      animate={{
+        scale: arrastrando ? 1.02 : 1,
+        boxShadow: arrastrando
+          ? "0 12px 32px rgb(27 28 25 / 0.18)"
+          : "0 0px 0px rgb(27 28 25 / 0)",
+      }}
+      style={{ position: "relative", zIndex: arrastrando ? 10 : 0 }}
+      onPointerDown={(e) => {
+        inicio.current = { x: e.clientX, y: e.clientY };
+        temporizador.current = setTimeout(() => {
+          onArrastrar(true);
+          controles.start(e);
+        }, PRESION_MS);
+      }}
+      onPointerMove={(e) => {
+        if (!temporizador.current) return;
+        // Si el dedo se fue en horizontal antes de tiempo, era un swipe.
+        if (Math.abs(e.clientX - inicio.current.x) > SLOP_PX) cancelarPresion();
+      }}
+      onPointerUp={cancelarPresion}
+      onPointerCancel={cancelarPresion}
     >
-      <article
-        className={cn(
-          "bg-card flex gap-3 px-4 py-3",
-          !last && "hairline-b",
-          "[--hairline-inset:4.25rem]",
-        )}
+      <SwipeRow
+        disabled={arrastrando}
+        actions={[
+          { label: "Editar", icon: PencilSimpleIcon, onSelect: onEdit },
+          {
+            label: "Borrar",
+            icon: TrashIcon,
+            tone: "destructive",
+            onSelect: onDelete,
+          },
+        ]}
       >
-        <Portada url={book.cover_url} titulo={book.title} ancho={44} />
+        <article
+          className={cn(
+            "bg-card flex gap-3 px-4 py-3",
+            !last && !arrastrando && "hairline-b",
+            "[--hairline-inset:4.25rem]",
+            arrastrando && "cursor-grabbing select-none",
+          )}
+        >
+          <Portada url={book.cover_url} titulo={book.title} ancho={44} />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <div className="min-w-0">
-            <h3 className="text-body line-clamp-1 font-medium">{book.title}</h3>
-            <p className="text-micro text-ink-faint truncate">
-              {/* El año se muestra siempre que exista, sin mirar el estado:
-                  la lista se ordena por él, así que esconderlo dejaría un orden
-                  sin explicación a la vista. */}
-              {[book.author, book.year, book.read_year ? `leído en ${book.read_year}` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <div className="min-w-0">
+              <h3 className="text-body line-clamp-1 font-medium">{book.title}</h3>
+              <p className="text-micro text-ink-faint truncate">
+                {[book.author, book.year, book.read_year ? `leído en ${book.read_year}` : null]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+              <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
+                {ETIQUETA[book.status]}
+              </Tag>
+              <Tag variant="wash">{esAudio ? "Audio" : "Libro"}</Tag>
+
+              {book.rating !== null && (
+                <StarRating value={book.rating} readOnly size={14} className="ml-auto" />
+              )}
+            </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-            {/* Solo el estado en progreso reclama atención. */}
-            <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
-              {ETIQUETA[book.status]}
-            </Tag>
-            <Tag variant="wash">{esAudio ? "Audio" : "Libro"}</Tag>
-
-            {book.rating !== null && (
-              <StarRating value={book.rating} readOnly size={14} className="ml-auto" />
-            )}
-          </div>
-        </div>
-      </article>
-    </SwipeRow>
+        </article>
+      </SwipeRow>
+    </Reorder.Item>
   );
 }
 

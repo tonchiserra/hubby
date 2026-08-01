@@ -37,7 +37,17 @@ export async function addBook(input: {
   if (title.length > 300) return { error: "El título es demasiado largo." };
 
   const supabase = await createClient();
+
+  // Los libros nuevos van arriba: acabás de anotarlo, es lo que querés ver.
+  const { data: primero } = await supabase
+    .from("books")
+    .select("position")
+    .order("position", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
   const { error } = await supabase.from("books").insert({
+    position: (primero?.position ?? 1) - 1,
     title,
     author: input.author?.trim() || null,
     year: input.year ?? null,
@@ -113,6 +123,21 @@ export async function updateBook(
     return { error: describe(error, "No se pudo guardar el libro.") };
   }
 
+  revalidate();
+  return {};
+}
+
+/**
+ * Guarda el orden nuevo completo. Va por una función de Postgres para que sea
+ * atómico y una sola ida y vuelta, en vez de una request por libro.
+ */
+export async function reorderBooks(ids: string[]): Promise<ActionResult> {
+  if (ids.length === 0) return {};
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reorder_books", { ids });
+
+  if (error) return { error: describe(error, "No se pudo guardar el orden.") };
   revalidate();
   return {};
 }

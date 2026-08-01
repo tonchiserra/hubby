@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +33,17 @@ export function SwipeRow({
   actions,
   children,
   className,
+  disabled,
 }: {
   actions: SwipeAction[];
   children: React.ReactNode;
   className?: string;
+  /**
+   * Apaga el gesto. Lo usa la lista de libros mientras se arrastra para
+   * reordenar: los dos gestos viven en la misma fila y no pueden estar activos
+   * a la vez.
+   */
+  disabled?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
@@ -57,7 +64,17 @@ export function SwipeRow({
 
   const close = () => place(0, true);
 
+  // Si el gesto se apaga a mitad de camino -porque arrancó un arrastre para
+  // reordenar- la fila vuelve a su lugar en vez de quedar corrida. Va en un
+  // efecto porque toca el DOM: hacerlo en el render lee refs antes de tiempo.
+  useEffect(() => {
+    if (!disabled) return;
+    active.current = false;
+    place(0, true);
+  }, [disabled]);
+
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (disabled) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     startX.current = e.clientX;
     startOffset.current = offset.current;

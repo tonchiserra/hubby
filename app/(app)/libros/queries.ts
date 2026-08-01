@@ -12,7 +12,10 @@ export async function getBooks(): Promise<Book[]> {
   const { data, error } = await supabase
     .from("books")
     .select("*")
-    .order("title", { ascending: true });
+    // El orden lo decide el usuario arrastrando; created_at solo desempata
+    // por si dos quedaran en la misma posición.
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) throw new Error(`No se pudo leer la biblioteca: ${error.message}`);
   return data ?? [];

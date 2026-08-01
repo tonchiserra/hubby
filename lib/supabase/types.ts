@@ -61,6 +61,8 @@ export type Database = {
           rating: number | null;
           /** Año en que se leyó, no fecha. */
           read_year: number | null;
+          /** Orden manual: lo decide el usuario arrastrando. */
+          position: number;
           created_at: string;
           updated_at: string;
         };
@@ -76,6 +78,7 @@ export type Database = {
           format?: BookFormat;
           rating?: number | null;
           read_year?: number | null;
+          position?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -89,12 +92,19 @@ export type Database = {
           format?: BookFormat;
           rating?: number | null;
           read_year?: number | null;
+          position?: number;
         };
         Relationships: [];
       };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      /** Reordena la biblioteca: los ids llegan en el orden nuevo. */
+      reorder_books: {
+        Args: { ids: string[] };
+        Returns: undefined;
+      };
+    };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
   };
