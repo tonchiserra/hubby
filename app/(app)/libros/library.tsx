@@ -18,6 +18,7 @@ import { TagButton } from "@/components/ui/tag";
 import { PromptDialog } from "@/components/ui/prompt-dialog";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
+import { ListGroup } from "@/components/hubby/list";
 import { cn } from "@/lib/utils";
 import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Book, BookStatus } from "@/lib/supabase/types";
@@ -241,9 +242,9 @@ export function Library({ books }: { books: Book[] }) {
           description="Buscá arriba el primer libro que quieras anotar. Te traigo el autor, el año y la portada."
         />
       ) : (
-        <div className="flex flex-col gap-3">
+        <ListGroup footer="Deslizá un libro para editarlo o borrarlo.">
           <AnimatePresence initial={false}>
-            {ordenados.map((book) => (
+            {ordenados.map((book, i) => (
               <motion.div
                 key={book.id}
                 layout
@@ -256,6 +257,7 @@ export function Library({ books }: { books: Book[] }) {
               >
                 <Ficha
                   book={book}
+                  last={i === ordenados.length - 1}
                   onStatus={(status) =>
                     run({ type: "status", id: book.id, status }, () =>
                       setStatus(book.id, status),
@@ -279,7 +281,7 @@ export function Library({ books }: { books: Book[] }) {
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
+        </ListGroup>
       )}
 
       <PromptDialog
@@ -303,13 +305,14 @@ export function Library({ books }: { books: Book[] }) {
 }
 
 /**
- * Tarjeta horizontal: portada a la izquierda, todo lo demás a la derecha.
- *
- * Editar y borrar van por swipe, igual que en el supermercado: una sola forma
- * de hacer lo mismo en toda la app, en vez de un botón acá y un gesto allá.
+ * Fila de libro. Misma anatomía que las del supermercado: todas dentro de una
+ * sola tarjeta, separadas por hairlines indentados al texto, y con editar y
+ * borrar por swipe. Antes eran tarjetas sueltas con sombra propia, que era otro
+ * lenguaje visual dentro de la misma app.
  */
 function Ficha({
   book,
+  last,
   onStatus,
   onRating,
   onFormat,
@@ -317,6 +320,7 @@ function Ficha({
   onDelete,
 }: {
   book: Book;
+  last: boolean;
   onStatus: (s: BookStatus) => void;
   onRating: (r: number | null) => void;
   onFormat: (f: Book["format"]) => void;
@@ -327,7 +331,6 @@ function Ficha({
 
   return (
     <SwipeRow
-      className="rounded-lg"
       actions={[
         { label: "Editar", icon: PencilSimpleIcon, onSelect: onEdit },
         {
@@ -338,15 +341,19 @@ function Ficha({
         },
       ]}
     >
-      <article className="bg-card flex gap-3.5 p-3">
-        <Portada url={book.cover_url} titulo={book.title} ancho={60} />
+      <article
+        className={cn(
+          "bg-card flex gap-3 px-4 py-3",
+          !last && "hairline-b",
+          "[--hairline-inset:4.25rem]",
+        )}
+      >
+        <Portada url={book.cover_url} titulo={book.title} ancho={44} />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <div className="min-w-0">
-            <h3 className="text-subhead line-clamp-2 font-semibold">
-              {book.title}
-            </h3>
-            {/* Autor y año, en segundo plano: el título es lo que se busca al
+            <h3 className="text-body line-clamp-1 font-medium">{book.title}</h3>
+            {/* Autor y año en segundo plano: el título es lo que se busca al
                 recorrer la lista. */}
             <p className="text-micro text-ink-faint truncate">
               {[
@@ -361,8 +368,9 @@ function Ficha({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            {/* La etiqueta ES el control: tocarla avanza el estado. */}
+          {/* Etiquetas y estrellas en la misma línea: la fila queda compacta,
+              como las del supermercado. */}
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             <TagButton
               variant={book.status === "leyendo" ? "accent" : "quiet"}
               onClick={() => onStatus(SIGUIENTE[book.status])}
@@ -383,9 +391,14 @@ function Ficha({
               )}
               {esAudio ? "Audiolibro" : "Libro"}
             </TagButton>
-          </div>
 
-          <StarRating value={book.rating} onChange={onRating} size={15} />
+            <StarRating
+              value={book.rating}
+              onChange={onRating}
+              size={14}
+              className="ml-auto"
+            />
+          </div>
         </div>
       </article>
     </SwipeRow>
