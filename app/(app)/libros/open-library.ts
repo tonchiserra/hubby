@@ -1,17 +1,18 @@
-import "server-only";
-
 /**
- * Búsqueda en Open Library.
+ * Búsqueda en Open Library, directo desde el navegador.
  *
- * Es la primera dependencia externa de hubby, así que está tratada como algo
- * que puede fallar: hay timeout, nunca lanza, y devolver una lista vacía es un
- * resultado válido. La pantalla siempre deja cargar el libro a mano, así que si
- * la API está caída el módulo sigue funcionando, solo que con más tipeo.
+ * Antes pasaba por una Server Action para poder cachear la respuesta. No valía
+ * la pena: la API tarda ~1,1s por su cuenta y el salto por nuestro servidor le
+ * sumaba encima, sin que el caché ayudara —cada tecla es una consulta distinta.
+ * Open Library manda `access-control-allow-origin: *`, así que se puede pedir
+ * directo.
  *
- * Sin clave y sin límite práctico. Docs: https://openlibrary.org/dev/docs/api/search
+ * Es una dependencia externa, así que está tratada como algo que puede fallar:
+ * nunca lanza, y devolver vacío es un resultado válido que la pantalla maneja.
+ * La carga manual siempre está disponible.
  */
 
-const TIMEOUT_MS = 4000;
+const TIMEOUT_MS = 6000;
 const RESULTADOS = 8;
 
 export type BookResult = {
@@ -30,21 +31,23 @@ type OpenLibraryDoc = {
   cover_i?: number;
 };
 
-export async function searchBooks(query: string): Promise<BookResult[]> {
+export async function searchBooks(
+  query: string,
+  signal?: AbortSignal,
+): Promise<BookResult[]> {
   const q = query.trim();
   if (q.length < 3) return [];
 
   const url = new URL("https://openlibrary.org/search.json");
   url.searchParams.set("q", q);
   url.searchParams.set("limit", String(RESULTADOS));
-  // Pedir solo los campos que se usan: la respuesta completa es enorme.
+  // Pedir solo los campos que se usan: la respuesta completa es enorme y es
+  // buena parte de por qué la consulta tarda.
   url.searchParams.set("fields", "key,title,author_name,first_publish_year,cover_i");
 
   try {
     const res = await fetch(url, {
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      // Los resultados de una búsqueda no cambian de un minuto a otro.
-      next: { revalidate: 3600 },
+      signal: signal ?? AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) return [];
 
@@ -55,7 +58,6 @@ export async function searchBooks(query: string): Promise<BookResult[]> {
         Boolean(d.key && d.title),
       )
       .map((d) => ({
-        // key viene como "/works/OL123W"; solo interesa el identificador.
         olid: d.key.replace("/works/", ""),
         title: d.title,
         author: d.author_name?.[0] ?? null,
@@ -65,8 +67,7 @@ export async function searchBooks(query: string): Promise<BookResult[]> {
           : null,
       }));
   } catch {
-    // Timeout, red caída o JSON inesperado. Que no haya resultados es un estado
-    // que la pantalla ya sabe manejar, y siempre queda la carga manual.
+    // Abortada, timeout, red caída o JSON inesperado.
     return [];
   }
 }

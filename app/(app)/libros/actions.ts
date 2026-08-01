@@ -86,10 +86,10 @@ export async function updateBook(
   }
 
   const actual = new Date().getFullYear();
-  // El año solo tiene sentido en un libro terminado; en cualquier otro estado
-  // se limpia para que no quede colgado de algo que ya no leíste.
-  let readYear = input.status === "leido" ? input.readYear : null;
-  if (input.status === "leido" && readYear === null) readYear = actual;
+  // El año es independiente del estado: se guarda tal cual venga. Antes se
+  // limpiaba al salir de "leído", lo que borraba en silencio un dato que el
+  // usuario habia cargado a proposito.
+  const readYear = input.readYear;
   if (readYear !== null && (readYear < 1900 || readYear > actual + 1)) {
     return { error: `El año tiene que estar entre 1900 y ${actual + 1}.` };
   }

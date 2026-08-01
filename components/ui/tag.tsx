@@ -4,7 +4,10 @@ import { cn } from "@/lib/utils";
 const tag = cva(
   [
     "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-    "text-micro font-semibold whitespace-nowrap",
+    // Mismo tamaño que el "FALTA" del supermercado: versalitas chicas, para
+    // que la etiqueta informe sin competir con el título.
+    "text-[10px] leading-[14px] font-semibold tracking-wide uppercase",
+    "whitespace-nowrap",
   ],
   {
     variants: {

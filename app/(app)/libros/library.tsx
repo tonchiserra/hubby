@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import {
   BookOpenIcon,
-  HeadphonesIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
   PlusIcon,
@@ -23,8 +22,7 @@ import { cn } from "@/lib/utils";
 import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Book, BookStatus } from "@/lib/supabase/types";
 import { addBook, deleteBook, updateBook } from "./actions";
-import { searchOpenLibrary } from "./search-action";
-import type { BookResult } from "./open-library";
+import { searchBooks, type BookResult } from "./open-library";
 
 const norm = (s: string) =>
   s
@@ -35,10 +33,19 @@ const norm = (s: string) =>
     .trim();
 
 /**
- * Sin filtros, el orden es lo único que jerarquiza: primero lo que estás
- * leyendo, después lo pendiente y al final lo terminado.
+ * Orden: primero el año, del más reciente al más viejo; a igual año, lo editado
+ * más recientemente. Los libros sin año van al final —no tienen fecha con la
+ * cual competir— y entre ellos también manda la última edición.
  */
-const PESO: Record<BookStatus, number> = { leyendo: 0, quiero: 1, leido: 2 };
+function comparar(a: Book, b: Book): number {
+  const anioA = a.read_year ?? -Infinity;
+  const anioB = b.read_year ?? -Infinity;
+  if (anioA !== anioB) return anioB - anioA;
+  return b.updated_at.localeCompare(a.updated_at);
+}
+
+/** Lo que se espera a que dejes de escribir antes de consultar. */
+const DEBOUNCE_MS = 400;
 
 const ETIQUETA: Record<BookStatus, string> = {
   leyendo: "En progreso",
@@ -75,14 +82,15 @@ export function Library({ books }: { books: Book[] }) {
   const [shown, addPatch] = useOptimistic(books, apply);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [buscando, setBuscando] = useState(false);
   const [query, setQuery] = useState("");
-  const [resultados, setResultados] = useState<BookResult[] | null>(null);
+  // Los resultados guardan la consulta que los produjo. Así "estoy buscando" y
+  // "estos resultados ya no corresponden" se deducen comparando, en vez de
+  // mantener dos estados más en sincronía a mano.
+  const [busqueda, setBusqueda] = useState<{ q: string; res: BookResult[] } | null>(
+    null,
+  );
   const [editando, setEditando] = useState<Book | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Cada búsqueda lleva su número: si vuelve una vieja después de una nueva,
-  // se descarta en vez de pisar resultados más recientes.
-  const pedido = useRef(0);
 
   const run = (patch: Patch, action: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
@@ -91,37 +99,42 @@ export function Library({ books }: { books: Book[] }) {
       if (res?.error) setError(res.error);
     });
 
-  const ordenados = useMemo(
-    () =>
-      [...shown].sort(
-        (a, b) =>
-          PESO[a.status] - PESO[b.status] ||
-          a.title.localeCompare(b.title, "es"),
-      ),
-    [shown],
-  );
+  const ordenados = useMemo(() => [...shown].sort(comparar), [shown]);
 
-  async function buscar(q: string) {
-    setQuery(q);
-    const mio = ++pedido.current;
+  const q = query.trim();
+  const corta = q.length < 3;
+  // Derivados, no estados: mientras lo que hay guardado no corresponda a lo que
+  // se está escribiendo, la búsqueda sigue en curso.
+  const resultados = busqueda?.q === q ? busqueda.res : null;
+  const buscando = !corta && resultados === null;
 
-    if (q.trim().length < 3) {
-      setResultados(null);
-      setBuscando(false);
-      return;
-    }
+  /**
+   * La búsqueda se dispara sola cuando el texto deja de cambiar.
+   *
+   * Antes salía una consulta por tecla: escribir "detectives salvajes" eran
+   * diecinueve búsquedas contra una API que tarda más de un segundo. Ahora se
+   * espera a que pares de escribir, y si igual queda una en vuelo cuando
+   * empezás de nuevo, se aborta.
+   */
+  useEffect(() => {
+    if (corta) return;
 
-    setBuscando(true);
-    const res = await searchOpenLibrary(q);
-    if (pedido.current !== mio) return; // llegó tarde
-    setResultados(res);
-    setBuscando(false);
-  }
+    const control = new AbortController();
+    const timer = setTimeout(async () => {
+      const res = await searchBooks(q, control.signal);
+      if (control.signal.aborted) return;
+      setBusqueda({ q, res });
+    }, DEBOUNCE_MS);
+
+    return () => {
+      clearTimeout(timer);
+      control.abort();
+    };
+  }, [q, corta]);
 
   async function agregar(input: Parameters<typeof addBook>[0]) {
     setError(null);
     setQuery("");
-    setResultados(null);
     inputRef.current?.focus();
     const res = await addBook(input);
     if (res?.error) setError(res.error);
@@ -130,7 +143,7 @@ export function Library({ books }: { books: Book[] }) {
   const yaEsta = (titulo: string) =>
     shown.some((b) => norm(b.title) === norm(titulo));
 
-  const buscandoAlgo = query.trim().length > 0;
+  const buscandoAlgo = q.length > 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -143,7 +156,7 @@ export function Library({ books }: { books: Book[] }) {
         <input
           ref={inputRef}
           value={query}
-          onChange={(e) => void buscar(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar un libro para agregar"
           aria-label="Buscar un libro para agregar"
           autoComplete="off"
@@ -155,7 +168,6 @@ export function Library({ books }: { books: Book[] }) {
             type="button"
             onClick={() => {
               setQuery("");
-              setResultados(null);
               inputRef.current?.focus();
             }}
             aria-label="Limpiar búsqueda"
@@ -308,13 +320,10 @@ function Ficha({
           <div className="min-w-0">
             <h3 className="text-body line-clamp-1 font-medium">{book.title}</h3>
             <p className="text-micro text-ink-faint truncate">
-              {[
-                book.author,
-                book.year,
-                book.status === "leido" && book.read_year
-                  ? `leído en ${book.read_year}`
-                  : null,
-              ]
+              {/* El año se muestra siempre que exista, sin mirar el estado:
+                  la lista se ordena por él, así que esconderlo dejaría un orden
+                  sin explicación a la vista. */}
+              {[book.author, book.year, book.read_year ? `leído en ${book.read_year}` : null]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
@@ -325,14 +334,7 @@ function Ficha({
             <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
               {ETIQUETA[book.status]}
             </Tag>
-            <Tag variant="wash">
-              {esAudio ? (
-                <HeadphonesIcon size={11} weight="fill" />
-              ) : (
-                <BookOpenIcon size={11} weight="fill" />
-              )}
-              {esAudio ? "Audiolibro" : "Libro"}
-            </Tag>
+            <Tag variant="wash">{esAudio ? "Audio" : "Libro"}</Tag>
 
             {book.rating !== null && (
               <StarRating value={book.rating} readOnly size={14} className="ml-auto" />

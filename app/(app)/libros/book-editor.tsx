@@ -150,9 +150,10 @@ function Formulario({
           </div>
         </Campo>
 
-        {/* El año solo aplica a un libro terminado. */}
-        {status === "leido" && (
-          <Campo etiqueta="Año de lectura">
+        {/* El año se puede cargar en cualquier estado: podés estar leyendo
+            algo que empezaste el año pasado, o anotar cuándo leíste algo que
+            todavía no marcaste como terminado. */}
+        <Campo etiqueta="Año">
             <input
               value={readYear}
               onChange={(e) => setReadYear(e.target.value.replace(/\D/g, ""))}
@@ -166,8 +167,7 @@ function Formulario({
                 !anioValido && "ring-2 ring-danger",
               )}
             />
-          </Campo>
-        )}
+        </Campo>
       </div>
 
       <div className="border-line grid grid-cols-2 border-t">
