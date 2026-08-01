@@ -58,22 +58,32 @@ export function ListRow({
       {...(asButton ? { type: "button" as const } : {})}
       className={cn(
         asButton && "w-full text-left",
-        "flex min-h-touch items-center gap-3 px-5",
-        // El separador arranca donde arranca el texto, no en el borde.
-        !last && "hairline-b",
-        leading ? "[--hairline-inset:3.5rem]" : "[--hairline-inset:1.25rem]",
+        // El padding derecho vive en el bloque de texto, no acá: así el
+        // separador puede dibujarse sobre ese bloque y llegar igual al borde.
+        "flex min-h-touch items-center gap-3 pl-5",
         interactive && "hover:bg-card-sunken/60 active:bg-card-sunken transition-colors",
         className,
       )}
       {...props}
     >
+      {/* Sin ancho fijo: el slot lo define lo que entre -una casilla de 22px o
+          un chip de 32 o 40-, que antes desbordaba las 6 unidades que medía. */}
       {leading && (
-        <div className="flex w-6 shrink-0 items-center justify-center">
+        <div className="flex shrink-0 items-center justify-center">
           {leading}
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 items-center gap-3 py-3">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-3 self-stretch py-3 pr-5",
+          // El separador arranca donde arranca el texto, no en el borde. Se
+          // dibuja sobre este bloque en vez de sobre la fila entera para que
+          // quede alineado con cualquier cosa que entre en `leading`, sin tener
+          // que adivinar cuánto mide.
+          !last && "hairline-b",
+        )}
+      >
         <div className="min-w-0 flex-1">
           <div className="text-body truncate">{label}</div>
           {detail && (

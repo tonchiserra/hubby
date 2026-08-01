@@ -26,6 +26,7 @@ export default async function SettingsPage() {
 
       <ListGroup title="Cuenta">
         <ListRow
+          last
           leading={<IconChip icon={UserIcon} size="sm" />}
           label="Sesión"
           detail={user?.email ?? "—"}
@@ -34,6 +35,7 @@ export default async function SettingsPage() {
 
       <ListGroup title="Apariencia">
         <ListRow
+          last
           leading={<IconChip icon={MoonIcon} size="sm" />}
           label="Tema"
           detail="hubby arranca siempre en claro"

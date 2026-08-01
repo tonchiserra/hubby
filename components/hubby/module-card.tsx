@@ -1,5 +1,6 @@
 import type { Icon } from "@phosphor-icons/react";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { IconChip } from "@/components/ui/icon-chip";
 import { cn } from "@/lib/utils";
 import { moduleTitleTransition } from "@/lib/transition-names";
 import { TransitionLink } from "./transition-link";
@@ -46,18 +47,11 @@ export function ModuleCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        {/* Círculo teñido detrás del ícono: está en las tres referencias y
-            sacarlo fue justamente lo que dejó las pantallas sin color. */}
-        <span
-          className={cn(
-            "grid size-10 shrink-0 place-items-center rounded-full",
-            reclama ? "bg-white/15 text-accent-ink" : "bg-accent-wash text-accent",
-          )}
-        >
-          <IconComponent size={20} />
-        </span>
+        <IconChip icon={IconComponent} tone={reclama ? "onAccent" : "wash"} />
+        {/* El chip lleva el acento siempre: es lo que dice de qué módulo es la
+            tarjeta. El contador aparece solo cuando hay algo que contar. */}
         {reclama && (
-          <span className="text-title3 leading-none font-bold tabular-nums">
+          <span className="text-title2 leading-none font-bold tabular-nums">
             {badge}
           </span>
         )}
@@ -105,7 +99,7 @@ export function ModuleCard({
           className={cn(
             "mb-0.5 shrink-0 transition-transform duration-150",
             "group-hover:-translate-y-0.5 group-hover:translate-x-0.5",
-            reclama ? "opacity-70" : "text-ink-faint",
+            reclama ? "opacity-70" : "text-accent",
           )}
         />
       </div>
