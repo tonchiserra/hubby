@@ -7,9 +7,12 @@ export const metadata = { title: "Libros" };
 
 export default async function LibrosPage() {
   const books = await getBooks();
-  const leyendo = books.filter((b) => b.status === "leyendo").length;
   const anio = new Date().getFullYear();
-  const esteAnio = books.filter((b) => b.read_year === anio).length;
+  // El año se puede cargar en cualquier estado, así que "terminados" pide las
+  // dos condiciones: algo que estás leyendo puede tener año y no cuenta.
+  const esteAnio = books.filter(
+    (b) => b.status === "leido" && b.read_year === anio,
+  ).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -20,9 +23,9 @@ export default async function LibrosPage() {
         subtitle={
           books.length === 0
             ? "Sin libros todavía"
-            : leyendo > 0
-              ? `Leyendo ${leyendo} · ${esteAnio} este año`
-              : `${esteAnio} este año · ${books.length} en total`
+            : esteAnio === 0
+              ? "Todavía no terminaste ningún libro este año"
+              : `Terminaste ${esteAnio} ${esteAnio === 1 ? "libro" : "libros"} este año`
         }
       />
       <Library books={books} />

@@ -49,9 +49,13 @@ export async function getBooksSummary(): Promise<ModuleSummary> {
       .eq("status", "leyendo")
       .order("title")
       .limit(3),
+    // El año se puede cargar en cualquier estado, así que "terminados" pide
+    // las dos condiciones: un libro empezado el año pasado y todavía en
+    // progreso tiene año, pero no cuenta como terminado.
     supabase
       .from("books")
       .select("*", { count: "exact", head: true })
+      .eq("status", "leido")
       .eq("read_year", anio),
     supabase.from("books").select("*", { count: "exact", head: true }),
   ]);
