@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/hubby/page-header";
 import { ModuleCard } from "@/components/hubby/module-card";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { EmptyState } from "@/components/hubby/empty-state";
+import { IconChip } from "@/components/ui/icon-chip";
 import { MODULES } from "@/lib/modules/registry";
 import { MODULE_SUMMARIES } from "@/lib/modules/summaries";
 import { partitionByUrgency, type ModulePanelEntry } from "@/lib/modules/summary";
@@ -78,7 +79,7 @@ export default async function Dashboard() {
                     <ListRow
                       last={i === quiet.length - 1}
                       interactive
-                      leading={<ModIcon size={22} className="text-accent" />}
+                      leading={<IconChip icon={ModIcon} />}
                       label={mod.label}
                       detail={summary.detail}
                     />
@@ -93,7 +94,7 @@ export default async function Dashboard() {
               <ListRow
                 last
                 interactive
-                leading={<GearIcon size={22} className="text-accent" />}
+                leading={<IconChip icon={GearIcon} size="sm" />}
                 label="Ajustes"
                 detail="Cuenta y apariencia"
               />

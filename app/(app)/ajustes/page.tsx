@@ -4,6 +4,7 @@ import { MoonIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react/dist/ssr"
 import { PageHeader } from "@/components/hubby/page-header";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { Button } from "@/components/ui/button";
+import { IconChip } from "@/components/ui/icon-chip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient, getUser } from "@/lib/supabase/server";
 
@@ -25,7 +26,7 @@ export default async function SettingsPage() {
 
       <ListGroup title="Cuenta">
         <ListRow
-          leading={<UserIcon size={22} className="text-ink-soft" />}
+          leading={<IconChip icon={UserIcon} size="sm" />}
           label="Sesión"
           detail={user?.email ?? "—"}
         />
@@ -33,7 +34,7 @@ export default async function SettingsPage() {
 
       <ListGroup title="Apariencia">
         <ListRow
-          leading={<MoonIcon size={22} className="text-ink-soft" />}
+          leading={<IconChip icon={MoonIcon} size="sm" />}
           label="Tema"
           detail="hubby arranca siempre en claro"
           trailing={<ThemeToggle />}
@@ -42,7 +43,7 @@ export default async function SettingsPage() {
 
       <form action={signOut}>
         <Button type="submit" variant="destructive" block>
-          <SignOutIcon size={20} />
+          <IconChip icon={SignOutIcon} size="sm" />
           Cerrar sesión
         </Button>
       </form>

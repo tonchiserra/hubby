@@ -143,8 +143,11 @@ function Formulario({
                 className="bg-sand h-[54px] w-9 shrink-0 rounded-sm object-cover"
               />
             ) : (
-              <div className="bg-sand grid h-[54px] w-9 shrink-0 place-items-center rounded-sm">
-                <BookOpenIcon size={14} className="text-ink-faint" />
+              // El hueco de la portada ocupa el lugar exacto de una tapa, así
+              // que es rectangular y no va adentro de un IconChip. Lleva el
+              // acento igual: el libro pertenece al módulo aunque falte la foto.
+              <div className="bg-accent-chip grid h-[54px] w-9 shrink-0 place-items-center rounded-sm">
+                <BookOpenIcon size={14} className="text-accent" />
               </div>
             )}
             <input

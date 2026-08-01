@@ -1,4 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
+import { IconChip } from "@/components/ui/icon-chip";
 import { cn } from "@/lib/utils";
 
 export function EmptyState({
@@ -21,7 +22,7 @@ export function EmptyState({
         className,
       )}
     >
-      <IconComponent size={36} weight="light" className="text-ink-faint" />
+      <IconChip icon={IconComponent} size="lg" className="mb-1" />
       <div className="flex flex-col gap-1">
         <p className="text-headline">{title}</p>
         {description && (

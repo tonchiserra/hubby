@@ -500,8 +500,11 @@ function Portada({
 
   if (!url) {
     return (
+      // El hueco de la portada ocupa el lugar exacto de una tapa, así que es
+      // rectangular y no va adentro de un IconChip. Lleva el acento igual: el
+      // libro pertenece al módulo aunque falte la foto.
       <div
-        className="bg-accent-wash text-accent grid shrink-0 place-items-center rounded-md"
+        className="bg-accent-chip text-accent grid shrink-0 place-items-center rounded-md"
         style={{ width: ancho, height: alto }}
         aria-hidden
       >
