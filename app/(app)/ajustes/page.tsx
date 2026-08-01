@@ -43,7 +43,7 @@ export default async function SettingsPage() {
 
       <form action={signOut}>
         <Button type="submit" variant="destructive" block>
-          <IconChip icon={SignOutIcon} size="sm" />
+          <SignOutIcon size={18} />
           Cerrar sesión
         </Button>
       </form>

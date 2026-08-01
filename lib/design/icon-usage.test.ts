@@ -40,6 +40,7 @@ const SIN_CHIP: Record<string, string> = {
   "app/(app)/supermercado/pantry.tsx:PlusCircleIcon": "va adentro de un botón",
   "app/(app)/libros/library.tsx:PlusIcon": "va adentro de un botón",
   "app/login/login-form.tsx:SignInIcon": "va adentro de un botón",
+  "app/(app)/ajustes/page.tsx:SignOutIcon": "va adentro de un botón destructivo",
 
   // El hueco de una portada tiene la forma de una tapa, no de un círculo.
   "app/(app)/libros/library.tsx:BookOpenIcon": "marcador de portada, es rectangular",

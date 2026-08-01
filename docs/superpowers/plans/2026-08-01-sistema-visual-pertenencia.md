@@ -217,6 +217,7 @@ const SIN_CHIP: Record<string, string> = {
   "app/(app)/supermercado/pantry.tsx:PlusCircleIcon": "va adentro de un botón",
   "app/(app)/libros/library.tsx:PlusIcon": "va adentro de un botón",
   "app/login/login-form.tsx:SignInIcon": "va adentro de un botón",
+  "app/(app)/ajustes/page.tsx:SignOutIcon": "va adentro de un botón destructivo",
 };
 
 function tsx(dir: string): string[] {
@@ -249,11 +250,10 @@ describe("uso de íconos", () => {
 ```bash
 pnpm test --run lib/design/icon-usage.test.ts
 ```
-Expected: FAIL. Hoy el escaneo devuelve 23 pares y la lista tiene 16; sobran exactamente estos 7. Task 3 envuelve 5 y suma los 2 de portada a la lista, con lo que cierra en 18 + 5 = 23:
+Expected: FAIL. Hoy el escaneo devuelve 23 pares y la lista tiene 17; sobran exactamente estos 6. Task 3 envuelve 4 y suma los 2 de portada a la lista, con lo que cierra en 19 + 4 = 23:
 
 ```
 app/(app)/ajustes/page.tsx:MoonIcon
-app/(app)/ajustes/page.tsx:SignOutIcon
 app/(app)/ajustes/page.tsx:UserIcon
 app/(app)/libros/book-editor.tsx:BookOpenIcon
 app/(app)/libros/library.tsx:BookOpenIcon
@@ -375,7 +375,6 @@ Son exactamente éstos, en cuatro archivos. En todos los casos se borran el `siz
 |---|---|---|---|
 | `app/(app)/ajustes/page.tsx` | `UserIcon` | fila de cuenta | `<IconChip icon={UserIcon} size="sm" />` |
 | `app/(app)/ajustes/page.tsx` | `MoonIcon` | fila de apariencia | `<IconChip icon={MoonIcon} size="sm" />` |
-| `app/(app)/ajustes/page.tsx` | `SignOutIcon` | fila de cerrar sesión | `<IconChip icon={SignOutIcon} size="sm" />` |
 | `app/(app)/page.tsx` | `GearIcon` | fila de Ajustes | `<IconChip icon={GearIcon} size="sm" />` |
 | `app/(app)/page.tsx` | `ModIcon` | ícono del módulo | `<IconChip icon={ModIcon} />` |
 | `app/(app)/libros/library.tsx` | `BookOpenIcon` | portada faltante | `<IconChip icon={BookOpenIcon} size="sm" />` |
@@ -399,7 +398,7 @@ Agregar esas dos líneas a `SIN_CHIP` en `lib/design/icon-usage.test.ts`:
   "app/(app)/libros/book-editor.tsx:BookOpenIcon": "marcador de portada, es rectangular",
 ```
 
-Con eso quedan 5 íconos realmente envueltos y 18 en la lista: 18 + 5 = 23, que es el total del escaneo.
+Con eso quedan 4 íconos realmente envueltos y 19 en la lista: 19 + 4 = 23, que es el total del escaneo.
 
 Agregar en cada archivo modificado el import:
 
