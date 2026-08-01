@@ -6,7 +6,6 @@ import { ModuleCard } from "@/components/hubby/module-card";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { MODULES } from "@/lib/modules/registry";
-import { accentVars } from "@/lib/modules/types";
 import { MODULE_SUMMARIES } from "@/lib/modules/summaries";
 import { partitionByUrgency, type ModulePanelEntry } from "@/lib/modules/summary";
 
@@ -52,7 +51,6 @@ export default async function Dashboard() {
               {active.map(({ module: mod, summary }) => (
                 <ModuleCard
                   key={mod.id}
-                  style={accentVars(mod)}
                   href={`/${mod.slug}`}
                   slug={mod.slug}
                   icon={mod.icon}
@@ -76,7 +74,6 @@ export default async function Dashboard() {
                     key={mod.id}
                     href={`/${mod.slug}`}
                     className="block"
-                    style={accentVars(mod)}
                   >
                     <ListRow
                       last={i === quiet.length - 1}

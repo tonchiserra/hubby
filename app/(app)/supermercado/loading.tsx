@@ -1,7 +1,5 @@
 import { PageHeader } from "@/components/hubby/page-header";
 import { moduleTitleTransition } from "@/lib/transition-names";
-import { findModuleBySlug } from "@/lib/modules/registry";
-import { accentVars } from "@/lib/modules/types";
 
 /**
  * Esqueleto de la pantalla mientras llegan los datos.
@@ -15,10 +13,8 @@ import { accentVars } from "@/lib/modules/types";
  * el elemento compartido tiene contra qué animar desde el primer frame.
  */
 export default function Loading() {
-  const modulo = findModuleBySlug("supermercado")!;
-
   return (
-    <div className="flex flex-col gap-6" style={accentVars(modulo)}>
+    <div className="flex flex-col gap-6">
       <PageHeader
         back={{ href: "/" }}
         transitionName={moduleTitleTransition("supermercado")}

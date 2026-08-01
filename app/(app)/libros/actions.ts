@@ -131,6 +131,32 @@ export async function setReadYear(
   return {};
 }
 
+/** Cambia el título, respetando la unicidad de la biblioteca. */
+export async function renameBook(
+  id: string,
+  title: string,
+): Promise<ActionResult> {
+  const limpio = title.trim().replace(/\s+/g, " ");
+  if (!limpio) return { error: "El título no puede quedar vacío." };
+  if (limpio.length > 300) return { error: "El título es demasiado largo." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("books")
+    .update({ title: limpio })
+    .eq("id", id);
+
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION) {
+      return { error: `Ya tenés un libro llamado “${limpio}”.` };
+    }
+    return { error: describe(error, "No se pudo renombrar el libro.") };
+  }
+
+  revalidate();
+  return {};
+}
+
 export async function deleteBook(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.from("books").delete().eq("id", id);

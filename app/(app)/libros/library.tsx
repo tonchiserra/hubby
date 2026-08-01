@@ -7,19 +7,28 @@ import {
   BookOpenIcon,
   HeadphonesIcon,
   MagnifyingGlassIcon,
+  PencilSimpleIcon,
   PlusIcon,
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
-import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/ui/star-rating";
-import { Tag, TagButton } from "@/components/ui/tag";
+import { TagButton } from "@/components/ui/tag";
+import { PromptDialog } from "@/components/ui/prompt-dialog";
+import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { cn } from "@/lib/utils";
 import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Book, BookStatus } from "@/lib/supabase/types";
-import { addBook, deleteBook, setFormat, setRating, setStatus } from "./actions";
+import {
+  addBook,
+  deleteBook,
+  renameBook,
+  setFormat,
+  setRating,
+  setStatus,
+} from "./actions";
 import { searchOpenLibrary } from "./search-action";
 import type { BookResult } from "./open-library";
 
@@ -43,17 +52,22 @@ const ETIQUETA: Record<BookStatus, string> = {
   leido: "Leído",
 };
 
-/** Qué botón mostrar según dónde está el libro en su ciclo. */
-const SIGUIENTE: Record<BookStatus, { a: BookStatus; texto: string }> = {
-  quiero: { a: "leyendo", texto: "Empezar" },
-  leyendo: { a: "leido", texto: "Terminé" },
-  leido: { a: "leyendo", texto: "Releer" },
+/**
+ * La etiqueta de estado ES el control: tocarla avanza al siguiente. El ciclo
+ * sigue el recorrido natural de un libro, y desde "leído" vuelve al principio
+ * para poder corregir sin buscar otro control.
+ */
+const SIGUIENTE: Record<BookStatus, BookStatus> = {
+  quiero: "leyendo",
+  leyendo: "leido",
+  leido: "quiero",
 };
 
 type Patch =
   | { type: "status"; id: string; status: BookStatus }
   | { type: "rating"; id: string; rating: number | null }
   | { type: "format"; id: string; format: Book["format"] }
+  | { type: "rename"; id: string; title: string }
   | { type: "delete"; id: string };
 
 function apply(books: Book[], patch: Patch): Book[] {
@@ -70,6 +84,10 @@ function apply(books: Book[], patch: Patch): Book[] {
       return books.map((b) =>
         b.id === patch.id ? { ...b, format: patch.format } : b,
       );
+    case "rename":
+      return books.map((b) =>
+        b.id === patch.id ? { ...b, title: patch.title } : b,
+      );
     case "delete":
       return books.filter((b) => b.id !== patch.id);
   }
@@ -82,6 +100,7 @@ export function Library({ books }: { books: Book[] }) {
   const [buscando, setBuscando] = useState(false);
   const [query, setQuery] = useState("");
   const [resultados, setResultados] = useState<BookResult[] | null>(null);
+  const [editando, setEditando] = useState<Book | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // Cada búsqueda lleva su número: si vuelve una vieja después de una nueva,
   // se descarta en vez de pisar resultados más recientes.
@@ -252,6 +271,7 @@ export function Library({ books }: { books: Book[] }) {
                       setFormat(book.id, format),
                     )
                   }
+                  onEdit={() => setEditando(book)}
                   onDelete={() =>
                     run({ type: "delete", id: book.id }, () => deleteBook(book.id))
                   }
@@ -261,80 +281,114 @@ export function Library({ books }: { books: Book[] }) {
           </AnimatePresence>
         </div>
       )}
+
+      <PromptDialog
+        open={editando !== null}
+        onOpenChange={(open) => !open && setEditando(null)}
+        title="Renombrar libro"
+        initialValue={editando?.title ?? ""}
+        placeholder="Título del libro"
+        maxLength={300}
+        onConfirm={(title) => {
+          const libro = editando;
+          if (!libro) return;
+          setError(null);
+          run({ type: "rename", id: libro.id, title }, () =>
+            renameBook(libro.id, title),
+          );
+        }}
+      />
     </div>
   );
 }
 
-/** Tarjeta horizontal: portada a la izquierda, todo lo demás a la derecha. */
+/**
+ * Tarjeta horizontal: portada a la izquierda, todo lo demás a la derecha.
+ *
+ * Editar y borrar van por swipe, igual que en el supermercado: una sola forma
+ * de hacer lo mismo en toda la app, en vez de un botón acá y un gesto allá.
+ */
 function Ficha({
   book,
   onStatus,
   onRating,
   onFormat,
+  onEdit,
   onDelete,
 }: {
   book: Book;
   onStatus: (s: BookStatus) => void;
   onRating: (r: number | null) => void;
   onFormat: (f: Book["format"]) => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
-  const paso = SIGUIENTE[book.status];
   const esAudio = book.format === "audiolibro";
 
   return (
-    <article className="bg-card shadow-card flex gap-3.5 rounded-lg p-3">
-      <Portada url={book.cover_url} titulo={book.title} ancho={64} />
+    <SwipeRow
+      className="rounded-lg"
+      actions={[
+        { label: "Editar", icon: PencilSimpleIcon, onSelect: onEdit },
+        {
+          label: "Borrar",
+          icon: TrashIcon,
+          tone: "destructive",
+          onSelect: onDelete,
+        },
+      ]}
+    >
+      <article className="bg-card flex gap-3.5 p-3">
+        <Portada url={book.cover_url} titulo={book.title} ancho={60} />
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="min-w-0">
-          <h3 className="text-subhead line-clamp-2 font-semibold">{book.title}</h3>
-          <p className="text-footnote text-ink-soft truncate">
-            {[book.author, book.year].filter(Boolean).join(" · ") || "Sin datos"}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {/* El estado en progreso reclama atención, así que lleva el acento
-              lleno; los otros dos son informativos. */}
-          <Tag variant={book.status === "leyendo" ? "accent" : "quiet"}>
-            {ETIQUETA[book.status]}
-          </Tag>
-
-          {/* El formato es binario, así que la propia etiqueta lo alterna. */}
-          <TagButton
-            variant="wash"
-            onClick={() => onFormat(esAudio ? "libro" : "audiolibro")}
-            aria-label={esAudio ? "Cambiar a libro" : "Cambiar a audiolibro"}
-          >
-            {esAudio ? <HeadphonesIcon size={11} weight="fill" /> : <BookOpenIcon size={11} weight="fill" />}
-            {esAudio ? "Audiolibro" : "Libro"}
-          </TagButton>
-
-          {book.status === "leido" && book.read_year && (
-            <Tag variant="quiet">{book.read_year}</Tag>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          <StarRating value={book.rating} onChange={onRating} size={15} />
-
-          <div className="flex shrink-0 items-center gap-1">
-            <Button size="sm" variant="soft" onClick={() => onStatus(paso.a)}>
-              {paso.texto}
-            </Button>
-            <button
-              type="button"
-              onClick={onDelete}
-              aria-label={`Borrar ${book.title}`}
-              className="text-ink-faint hover:text-danger grid size-8 shrink-0 place-items-center rounded-full transition-colors active:scale-90"
-            >
-              <TrashIcon size={15} />
-            </button>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="min-w-0">
+            <h3 className="text-subhead line-clamp-2 font-semibold">
+              {book.title}
+            </h3>
+            {/* Autor y año, en segundo plano: el título es lo que se busca al
+                recorrer la lista. */}
+            <p className="text-micro text-ink-faint truncate">
+              {[
+                book.author,
+                book.year,
+                book.status === "leido" && book.read_year
+                  ? `leído en ${book.read_year}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
           </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* La etiqueta ES el control: tocarla avanza el estado. */}
+            <TagButton
+              variant={book.status === "leyendo" ? "accent" : "quiet"}
+              onClick={() => onStatus(SIGUIENTE[book.status])}
+              aria-label={`${ETIQUETA[book.status]}. Tocar para pasar a ${ETIQUETA[SIGUIENTE[book.status]].toLowerCase()}`}
+            >
+              {ETIQUETA[book.status]}
+            </TagButton>
+
+            <TagButton
+              variant="wash"
+              onClick={() => onFormat(esAudio ? "libro" : "audiolibro")}
+              aria-label={esAudio ? "Cambiar a libro" : "Cambiar a audiolibro"}
+            >
+              {esAudio ? (
+                <HeadphonesIcon size={11} weight="fill" />
+              ) : (
+                <BookOpenIcon size={11} weight="fill" />
+              )}
+              {esAudio ? "Audiolibro" : "Libro"}
+            </TagButton>
+          </div>
+
+          <StarRating value={book.rating} onChange={onRating} size={15} />
         </div>
-      </div>
-    </article>
+      </article>
+    </SwipeRow>
   );
 }
 

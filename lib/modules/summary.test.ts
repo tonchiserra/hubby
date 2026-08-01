@@ -10,13 +10,6 @@ function mod(id: string, label: string): ModuleDefinition {
     label,
     icon: BasketIcon,
     description: "",
-    accent: {
-      solid: "#000",
-      ink: "#fff",
-      wash: "#eee",
-      solidDark: "#fff",
-      washDark: "#111",
-    },
   };
 }
 

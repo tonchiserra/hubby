@@ -1,6 +1,4 @@
 import { PageHeader } from "@/components/hubby/page-header";
-import { findModuleBySlug } from "@/lib/modules/registry";
-import { accentVars } from "@/lib/modules/types";
 import { moduleTitleTransition } from "@/lib/transition-names";
 
 /**
@@ -8,10 +6,8 @@ import { moduleTitleTransition } from "@/lib/transition-names";
  * la view transition anime enseguida en vez de esperar la consulta.
  */
 export default function Loading() {
-  const modulo = findModuleBySlug("libros")!;
-
   return (
-    <div className="flex flex-col gap-6" style={accentVars(modulo)}>
+    <div className="flex flex-col gap-6">
       <PageHeader
         back={{ href: "/" }}
         transitionName={moduleTitleTransition("libros")}
