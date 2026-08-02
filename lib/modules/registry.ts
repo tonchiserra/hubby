@@ -1,4 +1,4 @@
-import { BasketIcon, BookOpenIcon } from "@phosphor-icons/react/dist/ssr";
+import { BasketIcon, BookOpenIcon, HeartIcon } from "@phosphor-icons/react/dist/ssr";
 import type { ModuleDefinition } from "./types";
 
 /**
@@ -23,6 +23,16 @@ export const MODULES: ModuleDefinition[] = [
     icon: BookOpenIcon,
     description: "Lo que leíste, lo que estás leyendo y lo que querés leer.",
     // Azul pizarra: bien distinto del salvia del supermercado, y sin acercarse
+  },
+  {
+    id: "wish",
+    slug: "deseos",
+    label: "Deseos",
+    // Corazón y no bolsa: el ícono tiene que decir "lo quiero", no "lo estoy
+    // comprando". Una bolsa además se confunde con la canasta del supermercado
+    // en los 20px del chip.
+    icon: HeartIcon,
+    description: "Las cosas que te querés comprar, con su precio y dónde.",
   },
 ];
 
