@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# hubby
 
-## Getting Started
+Todo lo que trackeás, en un solo lugar. Next.js 16 (App Router) + Supabase.
 
-First, run the development server:
+## Desarrollo local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local   # completar con las credenciales del proyecto Supabase
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir [http://localhost:3000](http://localhost:3000). Sin credenciales la app no
+falla: redirige a `/setup`, que explica paso a paso qué falta.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Comandos:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando         | Qué hace                                    |
+| --------------- | ------------------------------------------- |
+| `pnpm dev`      | Servidor de desarrollo                      |
+| `pnpm build`    | Build de producción                         |
+| `pnpm test`     | Tests (vitest)                              |
+| `pnpm lint`     | ESLint                                      |
+| `pnpm db:push`  | Aplica las migraciones al proyecto Supabase |
+| `pnpm db:types` | Regenera `lib/supabase/types.generated.ts`  |
 
-## Learn More
+## Deploy en Vercel
 
-To learn more about Next.js, take a look at the following resources:
+Vercel detecta Next.js solo: no hace falta `vercel.json` ni tocar los comandos
+de build. Lo único obligatorio son las dos variables de entorno.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. Importar el repo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Desde [vercel.com/new](https://vercel.com/new), elegir `tonchiserra/hubby`.
+Framework: Next.js. Package manager: pnpm (lo infiere del `pnpm-lock.yaml`).
 
-## Deploy on Vercel
+O desde la terminal, en la raíz del proyecto:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dlx vercel@latest login
+pnpm dlx vercel@latest link      # crea o asocia el proyecto
+pnpm dlx vercel@latest --prod    # deploy a producción
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Variables de entorno
+
+En Project Settings → Environment Variables, cargar las dos para los tres
+entornos (Production, Preview, Development):
+
+| Variable                               | De dónde sale                                            |
+| -------------------------------------- | -------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase → Project Settings → API Keys → Project URL     |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys → publishable key |
+
+Las dos son públicas por diseño: viajan al navegador y lo que protege los datos
+es RLS, no esconder la clave. La *secret key* no se usa en este proyecto y no
+debe cargarse en Vercel.
+
+Si el deploy queda sin variables, el build igual pasa y la app sirve `/setup` en
+vez de romper. Cargarlas después requiere un redeploy: al ser `NEXT_PUBLIC_`
+quedan horneadas en el bundle del cliente en tiempo de build.
+
+### 3. Base de datos
+
+Las migraciones de `supabase/migrations/` se aplican contra el proyecto de
+Supabase, no desde Vercel:
+
+```bash
+pnpm db:link     # una sola vez
+pnpm db:push
+```
+
+### 4. Auth
+
+El login es email + contraseña, así que no hay callbacks de OAuth que
+configurar. Los usuarios se crean desde el panel de Supabase (Authentication →
+Users). Conviene igual dejar el dominio de Vercel en Supabase → Authentication →
+URL Configuration → Site URL, porque de ahí salen los links de los mails de
+recuperación de contraseña.
+
+### Después del primer deploy
+
+Cada push a `main` publica a producción y cada push a otra rama genera un
+preview. Los previews comparten la misma base que producción salvo que se les
+cargue otra URL en las variables del entorno Preview.
