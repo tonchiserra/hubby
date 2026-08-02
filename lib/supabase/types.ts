@@ -96,6 +96,38 @@ export type Database = {
         };
         Relationships: [];
       };
+
+      wishes: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          /** En la moneda del usuario. null = todavía no lo averiguaste. */
+          price: number | null;
+          /** Dónde comprarlo. Siempre http(s). */
+          url: string | null;
+          status: WishStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          title: string;
+          price?: number | null;
+          url?: string | null;
+          status?: WishStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          title?: string;
+          price?: number | null;
+          url?: string | null;
+          status?: WishStatus;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
@@ -113,5 +145,13 @@ export type Database = {
 export type BookStatus = "quiero" | "leyendo" | "leido";
 export type BookFormat = "libro" | "audiolibro";
 
+/**
+ * 'quiero' es la pila de algún día; 'proximo' es lo que decidiste comprar.
+ * La distinción existe porque una lista de deseos entera no puede reclamar
+ * atención: si todo pesa, el panel deja de servir para priorizar.
+ */
+export type WishStatus = "quiero" | "proximo" | "comprado";
+
 export type GroceryItem = Database["public"]["Tables"]["grocery_items"]["Row"];
 export type Book = Database["public"]["Tables"]["books"]["Row"];
+export type Wish = Database["public"]["Tables"]["wishes"]["Row"];

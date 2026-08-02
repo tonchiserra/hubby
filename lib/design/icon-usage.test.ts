@@ -20,6 +20,7 @@ const SIN_CHIP: Record<string, string> = {
   "components/hubby/list.tsx:CaretRightIcon": "afordancia de navegación",
   "components/hubby/page-header.tsx:ArrowLeftIcon": "afordancia de navegación",
   "components/hubby/module-card.tsx:ArrowUpRightIcon": "afordancia de navegación",
+  "app/(app)/deseos/wishlist.tsx:ArrowSquareOutIcon": "afordancia de navegación, sale de la app",
 
   // Íconos que son el dato o el estado de su propio control.
   "components/ui/star-rating.tsx:StarIcon": "las estrellas son el dato",
@@ -32,6 +33,8 @@ const SIN_CHIP: Record<string, string> = {
   "app/(app)/supermercado/pantry.tsx:XCircleIcon": "limpiar el campo",
   "app/(app)/libros/library.tsx:MagnifyingGlassIcon": "afordancia del campo",
   "app/(app)/libros/library.tsx:XCircleIcon": "limpiar el campo",
+  "app/(app)/deseos/wishlist.tsx:MagnifyingGlassIcon": "afordancia del campo",
+  "app/(app)/deseos/wishlist.tsx:XCircleIcon": "limpiar el campo",
   "app/login/login-form.tsx:EyeIcon": "mostrar u ocultar la contraseña",
   "app/login/login-form.tsx:EyeSlashIcon": "mostrar u ocultar la contraseña",
 
@@ -39,6 +42,7 @@ const SIN_CHIP: Record<string, string> = {
   // teñido adentro de otra superficie teñida.
   "app/(app)/supermercado/pantry.tsx:PlusCircleIcon": "va adentro de un botón",
   "app/(app)/libros/library.tsx:PlusIcon": "va adentro de un botón",
+  "app/(app)/deseos/wishlist.tsx:PlusCircleIcon": "va adentro de un botón",
   "app/login/login-form.tsx:SignInIcon": "va adentro de un botón",
   "app/(app)/ajustes/page.tsx:SignOutIcon": "va adentro de un botón destructivo",
 
