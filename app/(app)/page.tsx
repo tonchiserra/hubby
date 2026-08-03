@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/hubby/empty-state";
 import { IconChip } from "@/components/ui/icon-chip";
 import { MODULES } from "@/lib/modules/registry";
 import { MODULE_SUMMARIES } from "@/lib/modules/summaries";
+import { resumenAislado } from "@/lib/modules/safe-summary";
 import { partitionByUrgency, type ModulePanelEntry } from "@/lib/modules/summary";
 
 /**
@@ -25,7 +26,9 @@ async function loadEntries(): Promise<ModulePanelEntry[]> {
   return Promise.all(
     withSummary.map(async (mod) => ({
       module: mod,
-      summary: await MODULE_SUMMARIES[mod.id](),
+      // Aislado: un módulo que falla degrada su propia tarjeta y no rechaza el
+      // Promise.all, que se llevaría puesta la home entera.
+      summary: await resumenAislado(mod.id, MODULE_SUMMARIES[mod.id]),
     })),
   );
 }
