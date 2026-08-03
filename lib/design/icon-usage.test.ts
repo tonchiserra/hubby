@@ -41,6 +41,10 @@ const SIN_CHIP: Record<string, string> = {
   // Adentro de un botón, que ya lleva el acento: un chip ahí sería un círculo
   // teñido adentro de otra superficie teñida.
   "app/(app)/supermercado/pantry.tsx:PlusCircleIcon": "va adentro de un botón",
+  "app/(app)/tareas/tasks.tsx:PlusCircleIcon": "va adentro de un botón",
+  "app/(app)/tareas/tasks.tsx:PlusIcon": "va adentro de un botón",
+  "app/(app)/tareas/tasks.tsx:SlidersHorizontalIcon": "va adentro de un botón",
+  "app/(app)/tareas/list-editor.tsx:TrashIcon": "va adentro de un botón destructivo",
   "app/(app)/supermercado/pantry.tsx:DownloadSimpleIcon": "va adentro de un botón",
   "app/(app)/supermercado/download-button.tsx:DownloadSimpleIcon":
     "va adentro de un botón",

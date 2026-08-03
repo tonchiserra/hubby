@@ -5,16 +5,25 @@ import { cn } from "@/lib/utils";
 export function ListGroup({
   className,
   title,
+  titleAction,
   footer,
   children,
   ...props
-}: React.ComponentProps<"div"> & { title?: string; footer?: string }) {
+}: React.ComponentProps<"div"> & {
+  title?: string;
+  /** Controles del grupo, a la derecha del título. */
+  titleAction?: React.ReactNode;
+  footer?: string;
+}) {
   return (
     <section className="flex flex-col">
-      {title && (
-        <h2 className="text-caption text-ink-soft px-1 pb-2 font-medium tracking-wide uppercase">
-          {title}
-        </h2>
+      {(title || titleAction) && (
+        <div className="flex items-center justify-between gap-2 px-1 pb-2">
+          <h2 className="text-caption text-ink-soft truncate font-medium tracking-wide uppercase">
+            {title}
+          </h2>
+          {titleAction}
+        </div>
       )}
       <div
         className={cn("bg-card shadow-card overflow-hidden rounded-lg", className)}

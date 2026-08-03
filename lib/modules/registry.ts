@@ -1,4 +1,9 @@
-import { BasketIcon, BookOpenIcon, HeartIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  BasketIcon,
+  BookOpenIcon,
+  HeartIcon,
+  ListChecksIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import type { ModuleDefinition } from "./types";
 
 /**
@@ -32,6 +37,14 @@ export const MODULES: ModuleDefinition[] = [
     // en los 20px del chip.
     icon: HeartIcon,
     description: "Las cosas que te querés comprar, con su precio y dónde.",
+  },
+  {
+    id: "task_list",
+    slug: "tareas",
+    label: "Tareas",
+    icon: ListChecksIcon,
+    description:
+      "Listas que se repiten. Cada una vuelve a pendiente el día que le toca.",
   },
 ];
 

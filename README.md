@@ -12,6 +12,7 @@ Es una app de una sola persona: no hay equipos ni compartir. Cada tabla lleva
 | **Supermercado** | `/supermercado` | Inventario de casa. Lo que se terminó *es* la lista de compras.   |
 | **Libros**       | `/libros`       | Leídos, en curso y por leer. Portadas y datos de Open Library.    |
 | **Deseos**       | `/deseos`       | Lo que te querés comprar, con precio y link a dónde.              |
+| **Tareas**       | `/tareas`       | Listas que se repiten: cada una vuelve a pendiente el día que le toca. |
 | **Ajustes**      | `/ajustes`      | Sesión, tema y cerrar sesión. No es un módulo, es configuración.  |
 
 La home es el menú: una tarjeta por módulo, las que reclaman algo primero. No
@@ -33,6 +34,8 @@ tiene":
   y no reclama nada.
 - **Deseos**: solo los marcados como *próximo*, que es la decisión explícita de
   comprarlo. Querer veinte cosas no es tener veinte pendientes.
+- **Tareas**: todo lo que quedó sin marcar. Acá sí pesa todo, porque una tarea
+  anotada es algo que decidiste hacer, no una aspiración.
 
 Las reglas viven en el `summary.ts` de cada módulo, en una función pura que se
 testea sin base de datos.
@@ -121,6 +124,13 @@ la convención que fija el init:
 - índice que cubre el acceso real de la pantalla
 - trigger `set_updated_at`
 - índice único sobre `lower(trim(nombre))` donde no se quieren repetidos
+
+Tareas es el único módulo con trabajo diferido: el reinicio de las listas no lo
+corre ningún proceso de fondo, se calcula al leer (`app/(app)/tareas/reset.ts`).
+Si la última vez que tocaba reiniciar ya pasó, la lectura destilda las tareas y
+guarda esa fecha —la que tocaba, no la de hoy— antes de devolver los datos. Así
+la app puede estar tres meses sin abrirse y lo que ves sigue siendo correcto,
+sin depender de un cron que la capa gratuita de Supabase no sostiene.
 
 Los tipos de `lib/supabase/types.ts` están escritos a mano y son los que importa
 la app. `pnpm db:types` escribe aparte, en `types.generated.ts`, para comparar

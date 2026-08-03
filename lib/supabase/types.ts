@@ -128,6 +128,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      task_lists: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          reset_kind: ResetKind;
+          /** Semanal: 0 = domingo … 6 = sábado. Mensual y anual: día del mes. */
+          reset_day: number | null;
+          /** Solo anual: 1 = enero … 12 = diciembre. */
+          reset_month: number | null;
+          /** Fecha local `YYYY-MM-DD` del último reinicio aplicado. */
+          last_reset_on: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          name: string;
+          reset_kind?: ResetKind;
+          reset_day?: number | null;
+          reset_month?: number | null;
+          last_reset_on?: string;
+        };
+        Update: {
+          name?: string;
+          reset_kind?: ResetKind;
+          reset_day?: number | null;
+          reset_month?: number | null;
+          last_reset_on?: string;
+        };
+        Relationships: [];
+      };
+      tasks: {
+        Row: {
+          id: string;
+          user_id: string;
+          list_id: string;
+          title: string;
+          done: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          list_id: string;
+          title: string;
+          done?: boolean;
+        };
+        Update: {
+          title?: string;
+          done?: boolean;
+        };
+        // La foreign key se declara acá y no solo en la base: es de donde el
+        // cliente deduce que `task_lists.select("*, tasks(*)")` devuelve un
+        // arreglo de tareas. Sin esto el embed no tipa.
+        Relationships: [
+          {
+            foreignKeyName: "tasks_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "task_lists";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<never, never>;
     Functions: {
@@ -152,6 +215,15 @@ export type BookFormat = "libro" | "audiolibro";
  */
 export type WishStatus = "quiero" | "proximo" | "comprado";
 
+/**
+ * Cada cuánto una lista de tareas vuelve entera a pendiente. 'nunca' es una
+ * lista común; el resto son las que se repiten -las cuentas del mes, la
+ * limpieza de la semana- y son el motivo del módulo.
+ */
+export type ResetKind = "nunca" | "semanal" | "mensual" | "anual";
+
 export type GroceryItem = Database["public"]["Tables"]["grocery_items"]["Row"];
 export type Book = Database["public"]["Tables"]["books"]["Row"];
 export type Wish = Database["public"]["Tables"]["wishes"]["Row"];
+export type TaskList = Database["public"]["Tables"]["task_lists"]["Row"];
+export type Task = Database["public"]["Tables"]["tasks"]["Row"];
