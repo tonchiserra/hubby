@@ -22,7 +22,6 @@ export const MODULES: ModuleDefinition[] = [
     label: "Libros",
     icon: BookOpenIcon,
     description: "Lo que leíste, lo que estás leyendo y lo que querés leer.",
-    // Azul pizarra: bien distinto del salvia del supermercado, y sin acercarse
   },
   {
     id: "wish",

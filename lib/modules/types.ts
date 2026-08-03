@@ -1,11 +1,11 @@
 import type { Icon } from "@phosphor-icons/react";
 
 /**
- * Metadata de un módulo. A propósito NO incluye su widget de dashboard: este
- * archivo lo consume la navegación, que corre en cliente, y arrastrar ahí un
- * Server Component mete next/headers en el bundle del navegador.
+ * Metadata de un módulo. A propósito NO incluye su resumen de panel: este
+ * archivo lo consume la navegación, que corre en cliente, y arrastrar ahí una
+ * consulta mete next/headers en el bundle del navegador.
  *
- * Los widgets viven en `widgets.tsx`, que es solo de servidor.
+ * Los resúmenes viven en `summaries.ts`, que es solo de servidor.
  */
 export type ModuleDefinition = {
   /** Identificador estable. Coincide con el nombre de su tabla, en singular. */

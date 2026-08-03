@@ -47,8 +47,9 @@
   --sand: #e9e4d6;
   --sand-deep: #ddd6c3;
 
-  /* Acento por defecto. Cada módulo lo pisa con el suyo en su propia pantalla:
-     ver `accent` en lib/modules/registry.ts. */
+  /* El acento, uno solo para toda la app. Se probó darle el suyo a cada módulo
+     y el resultado fue una app de colores sueltos: el verde salvia es la
+     identidad de hubby, no la del supermercado. */
   --accent: #4a7a5b;
   --accent-hover: #3f6a4e;
   --accent-ink: #ffffff;
