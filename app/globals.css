@@ -182,6 +182,16 @@
     @apply outline-accent outline-2 outline-offset-2;
   }
 
+  /* Tailwind v4 sacó el `cursor: pointer` que v3 le ponía a los botones: su
+     Preflight ahora respeta el default del navegador, que es la flecha. Se
+     restituye acá y no botón por botón, porque en la app no hay un solo
+     elemento clickeable que deba mostrar otra cosa.
+     Los deshabilitados quedan afuera: ahí la flecha ES la información. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   /* Las cifras nunca bailan al actualizarse. */
   :where(output, [data-numeric]) {
     font-variant-numeric: tabular-nums;
