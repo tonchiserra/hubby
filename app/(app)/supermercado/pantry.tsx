@@ -4,6 +4,7 @@ import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   BasketIcon,
+  DownloadSimpleIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
   PlusCircleIcon,
@@ -27,6 +28,7 @@ import {
   springLayout,
 } from "@/lib/motion";
 import type { GroceryItem } from "@/lib/supabase/types";
+import { downloadMissing } from "./download";
 import {
   addItem,
   deleteItem,
@@ -112,6 +114,11 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
     const res = await addItem(name);
     if (res?.error) setError(res.error);
   }
+
+  // Se descarga todo lo que falta, no lo que quedó visible: el buscador y el
+  // filtro son para moverse por la pantalla, la lista para llevar es la entera.
+  const onDownload = () =>
+    downloadMissing(shown.filter((i) => !i.active).map((i) => i.name));
 
   const searching = q.length > 0;
 
@@ -283,20 +290,24 @@ export function Pantry({ items }: { items: GroceryItem[] }) {
 
         {missingCount > 0 && (
           <motion.div
-            key="comprar-todo"
+            key="acciones"
             layout
             variants={blockVariants}
             initial="initial"
             animate="animate"
             exit="exit"
             transition={springEnter}
-            className="flex justify-center overflow-hidden pt-2"
+            className="flex flex-wrap items-center justify-center gap-2 overflow-hidden pt-2"
           >
             <Button
               variant="soft"
               onClick={() => run({ type: "allBought" }, () => markAllBought())}
             >
               Ya compré todo
+            </Button>
+            <Button variant="quiet" onClick={onDownload}>
+              <DownloadSimpleIcon size={17} weight="bold" />
+              Descargar faltantes
             </Button>
           </motion.div>
         )}
