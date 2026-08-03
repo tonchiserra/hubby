@@ -12,7 +12,7 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
-import { TagButton } from "@/components/ui/tag";
+import { Tag } from "@/components/ui/tag";
 import { Segmented } from "@/components/ui/segmented";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { SwipeRow } from "@/components/hubby/swipe-row";
@@ -27,7 +27,7 @@ import {
 } from "@/lib/motion";
 import type { Wish, WishStatus } from "@/lib/supabase/types";
 import { WishEditor, type WishDraft } from "./wish-editor";
-import { addWish, deleteWish, setWishStatus, updateWish } from "./actions";
+import { addWish, deleteWish, updateWish } from "./actions";
 import { formatPrice, storeName } from "./money";
 
 /**
@@ -53,28 +53,17 @@ const ETIQUETA: Record<WishStatus, string> = {
  * Un toque avanza el estado. El ciclo vuelve a empezar en 'quiero' para que un
  * toque de más no sea un callejón sin salida: si te pasaste, seguís tocando.
  */
-const SIGUIENTE: Record<WishStatus, WishStatus> = {
-  quiero: "proximo",
-  proximo: "comprado",
-  comprado: "quiero",
-};
-
 /** Lo decidido primero, lo comprado al final. */
 const RANGO: Record<WishStatus, number> = { proximo: 0, quiero: 1, comprado: 2 };
 
 type Filter = "todo" | "pendientes" | "comprados";
 
 type Patch =
-  | { type: "status"; id: string; status: WishStatus }
   | { type: "save"; id: string; draft: WishDraft }
   | { type: "delete"; id: string };
 
 function apply(wishes: Wish[], patch: Patch): Wish[] {
   switch (patch.type) {
-    case "status":
-      return wishes.map((w) =>
-        w.id === patch.id ? { ...w, status: patch.status } : w,
-      );
     case "save":
       return wishes.map((w) =>
         w.id === patch.id
@@ -253,7 +242,7 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
           description="Anotá arriba lo primero que se te ocurra. Después le ponés el precio y el link de dónde comprarlo."
         />
       ) : (
-        <ListGroup footer="Tocá el estado para avanzarlo. Deslizá para editar o borrar.">
+        <ListGroup footer="Deslizá un deseo para editarlo o borrarlo.">
           {/* La animación va acá afuera y no dentro de SwipeRow: ese componente
               maneja transform a mano durante el gesto y se pelearían por la
               misma propiedad. */}
@@ -272,11 +261,6 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
                 <Ficha
                   wish={wish}
                   last={i === visible.length - 1}
-                  onAvanzar={() =>
-                    run({ type: "status", id: wish.id, status: SIGUIENTE[wish.status] }, () =>
-                      setWishStatus(wish.id, SIGUIENTE[wish.status]),
-                    )
-                  }
                   onEdit={() => setEditando(wish)}
                   onDelete={() =>
                     run({ type: "delete", id: wish.id }, () => deleteWish(wish.id))
@@ -324,24 +308,20 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
 }
 
 /**
- * Fila de deseo.
+ * Fila de deseo, entera de solo lectura.
  *
- * El nombre, el precio y la tienda son de solo lectura: se editan en el
- * formulario, en un solo lugar. La excepción es el estado, que es la única
- * decisión que se toma mirando la lista y por eso vale un toque —igual que la
- * casilla del supermercado—. Va como TagButton, que existe justamente para los
- * estados que se pueden cambiar.
+ * Todo se edita desde el formulario, incluido el estado: es la regla que Gonzalo
+ * fijó en Libros después de probar la alternativa. Recorrer la lista no puede
+ * cambiar nada por accidente, y con el swipe abierto un toque suelto es fácil.
  */
 function Ficha({
   wish,
   last,
-  onAvanzar,
   onEdit,
   onDelete,
 }: {
   wish: Wish;
   last: boolean;
-  onAvanzar: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -385,13 +365,9 @@ function Ficha({
           </div>
 
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-            <TagButton
-              variant={wish.status === "proximo" ? "accent" : "wash"}
-              onClick={onAvanzar}
-              aria-label={`${wish.title}: ${ETIQUETA[wish.status]}. Tocá para pasar a ${ETIQUETA[SIGUIENTE[wish.status]]}`}
-            >
+            <Tag variant={wish.status === "proximo" ? "accent" : "wash"}>
               {ETIQUETA[wish.status]}
-            </TagButton>
+            </Tag>
           </div>
         </div>
 

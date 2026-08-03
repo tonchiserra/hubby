@@ -129,23 +129,6 @@ export async function updateWish(
   return {};
 }
 
-/**
- * Cambia solo el estado. Va aparte de `updateWish` porque es el gesto de un
- * toque desde la lista: mandar el resto de los campos ahí obligaría a la fila a
- * conocer datos que no muestra.
- */
-export async function setWishStatus(
-  id: string,
-  status: WishStatus,
-): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { error } = await supabase.from("wishes").update({ status }).eq("id", id);
-
-  if (error) return { error: describe(error, "No se pudo cambiar el estado.") };
-  revalidate();
-  return {};
-}
-
 export async function deleteWish(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.from("wishes").delete().eq("id", id);

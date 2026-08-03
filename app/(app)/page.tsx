@@ -49,48 +49,28 @@ export default async function Dashboard() {
         />
       ) : (
         <>
-          {active.length > 0 && (
-            // Una columna en móvil, tres en escritorio.
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              {active.map(({ module: mod, summary }) => (
-                <ModuleCard
-                  key={mod.id}
-                  href={`/${mod.slug}`}
-                  slug={mod.slug}
-                  icon={mod.icon}
-                  label={mod.label}
-                  detail={summary.detail}
-                  badge={summary.urgency}
-                  preview={summary.preview}
-                />
-              ))}
-            </div>
-          )}
+          {/* Todos los módulos son tarjetas, urgentes primero. Antes los que no
+              reclamaban nada se colapsaban a una línea fina, y eso los dejaba
+              iguales a Ajustes: un módulo con cosas adentro terminaba pareciendo
+              un acceso de configuración. Con tarjetas el color ya dice quién
+              pide algo -verde reclama, papel está al día- así que la línea no
+              hacía falta y solo introducía una segunda forma de decir lo mismo.
 
-          {/* Lo resuelto se colapsa a una línea: con varios módulos, los que no
-              piden nada dejan de competir por la atención. */}
-          {quiet.length > 0 && (
-            <ListGroup title="Al día">
-              {quiet.map(({ module: mod, summary }, i) => {
-                const ModIcon = mod.icon;
-                return (
-                  <Link
-                    key={mod.id}
-                    href={`/${mod.slug}`}
-                    className="block"
-                  >
-                    <ListRow
-                      last={i === quiet.length - 1}
-                      interactive
-                      leading={<IconChip icon={ModIcon} />}
-                      label={mod.label}
-                      detail={summary.detail}
-                    />
-                  </Link>
-                );
-              })}
-            </ListGroup>
-          )}
+              Una columna en móvil, tres en escritorio. */}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {[...active, ...quiet].map(({ module: mod, summary }) => (
+              <ModuleCard
+                key={mod.id}
+                href={`/${mod.slug}`}
+                slug={mod.slug}
+                icon={mod.icon}
+                label={mod.label}
+                detail={summary.detail}
+                badge={summary.urgency}
+                preview={summary.preview}
+              />
+            ))}
+          </div>
 
           <ListGroup>
             <Link href="/ajustes" className="block">
