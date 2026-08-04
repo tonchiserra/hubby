@@ -66,6 +66,19 @@ migración simplemente no se nota la mejora.
 Matiz honesto: en Vercel el JWKS se recachea en cada arranque en frío, así que
 el ahorro es "casi todos los requests", no "todos".
 
+**Lo que se resigna.** `getUser()` le preguntaba al servidor de Auth en cada
+request, así que una sesión revocada —borrada desde el panel de Supabase, o
+cerrada desde otro dispositivo— dejaba de servir al instante. Con verificación
+local, ese token sigue siendo válido hasta que vence, o sea hasta una hora.
+
+Es una mejora de rendimiento que se paga en tiempo de revocación, y para una app
+de una sola persona el precio es chico: no hay sesiones ajenas que expulsar. Si
+alguna vez hiciera falta echar a alguien en el acto, la vuelta a `getUser()` es
+un cambio de dos líneas.
+
+*(Anotado el 2026-08-04, después de implementarlo: no estaba en la versión
+original de este diseño y lo levantó la revisión.)*
+
 ### 2. Panel: de nueve consultas a dos
 
 Una función `public.panel_resumen()` —`security invoker`, misma convención que

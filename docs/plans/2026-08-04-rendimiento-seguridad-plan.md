@@ -1082,19 +1082,29 @@ Supabase → Authentication → JWT Keys antes de seguir.
 
 - [ ] **Step 2: Medir el antes**
 
-Sin sesión, `/` redirige a `/login` **después** de verificar el token, así que
-esto mide exactamente el camino que cambia —la verificación de la sesión— sin
-mezclarle el tiempo de las consultas del panel.
+**Hace falta una sesión iniciada.** Sin cookie no hay token que verificar:
+`getUser()` corta con `AuthSessionMissingError` sin salir a la red, así que un
+`curl` pelado mide un redirect vacío y da lo mismo antes y después. Es un error
+que este plan tuvo en su primera versión.
 
-```bash
-pnpm build
-pnpm start & SERVIDOR=$!
-sleep 4
-for i in $(seq 1 10); do curl -so /dev/null -w "%{time_starttransfer}\n" http://localhost:3000/; done | sort -n | sed -n 6p
-kill $SERVIDOR
+Con un build de producción corriendo y sesión abierta en el navegador, desde la
+consola de DevTools:
+
+```js
+const t = [];
+for (let i = 0; i < 12; i++) {
+  const a = performance.now();
+  // /login con sesión lo resuelve el proxy con un 307 sin renderizar nada:
+  // aísla la verificación del token del tiempo de las consultas del panel.
+  await fetch("/login", { redirect: "manual" });
+  t.push(performance.now() - a);
+}
+t.sort((x, y) => x - y);
+console.log("mediana ms:", t[6]);
 ```
 
-Expected: imprime la mediana del TTFB en segundos. Anotarla.
+Expected: imprime la mediana en milisegundos. Anotarla. Como referencia, en la
+corrida del 2026-08-04 dio **203 ms**.
 
 - [ ] **Step 3: Cambiar la verificación**
 
@@ -1148,10 +1158,11 @@ Expected: sin errores.
 
 - [ ] **Step 5: Medir el después**
 
-Mismo comando del Step 2.
+Mismo procedimiento del Step 2, con la misma sesión.
 
-Expected: una mediana menor. Si es igual, revisar que el Step 1 se haya hecho:
-sin llaves asimétricas no hay nada que ganar.
+Expected: una mediana bastante menor. En la corrida del 2026-08-04 pasó de
+**203 ms a 2,8 ms**. Si sigue igual, revisar el Step 1: sin llaves asimétricas
+no hay nada que ganar.
 
 - [ ] **Step 6: Cazar el logout aleatorio**
 

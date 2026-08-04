@@ -799,7 +799,8 @@ El orden y el colapso solo se pueden comprobar con datos reales. Se recorren los
 pnpm build && pnpm start --port 3211
 ```
 
-Entrar a `http://localhost:3211/login` con `test@hubby.com` / `test1234`.
+Entrar a `http://localhost:3211/login` con el usuario de prueba. La contraseña no
+va escrita acá: es una cuenta real del proyecto de Supabase y esto está en git.
 
 > Si Gonzalo ya borró el usuario de prueba, usar el suyo. Si aparece **HTTP 431**, borrar las cookies de `localhost` en DevTools → Application → Cookies: las cookies no se aíslan por puerto y se acumulan entre proyectos.
 
