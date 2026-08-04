@@ -199,6 +199,16 @@ export type Database = {
         Args: { ids: string[] };
         Returns: undefined;
       };
+      /** Los contadores del panel en una sola ida y vuelta. Sin reglas adentro. */
+      panel_resumen: {
+        Args: Record<never, never>;
+        Returns: PanelCounters;
+      };
+      /** Marca el reinicio de varias listas, cada una con la fecha que le tocaba. */
+      marcar_reinicios: {
+        Args: { ids: string[]; marcas: string[] };
+        Returns: undefined;
+      };
     };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
@@ -227,3 +237,31 @@ export type Book = Database["public"]["Tables"]["books"]["Row"];
 export type Wish = Database["public"]["Tables"]["wishes"]["Row"];
 export type TaskList = Database["public"]["Tables"]["task_lists"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+
+/**
+ * Lo que devuelve `panel_resumen()`: números y nombres, nada interpretado.
+ *
+ * Las claves están en snake_case porque son las de la función de Postgres y no
+ * las de la app: renombrarlas acá escondería de dónde vienen.
+ *
+ * Tareas no está: su resumen tiene que aplicar los reinicios vencidos antes de
+ * contar, y esa lógica vive en TypeScript.
+ */
+export type PanelCounters = {
+  grocery: {
+    missing_names: string[];
+    missing_count: number;
+    total: number;
+  };
+  books: {
+    leyendo: string[];
+    leidos_anio: number;
+    total: number;
+  };
+  wishes: {
+    proximos: { title: string; price: number | null }[];
+    proximos_count: number;
+    pendientes_count: number;
+    total: number;
+  };
+};
