@@ -37,13 +37,19 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // No insertar NADA entre createServerClient y getUser(): cualquier await en
+  // No insertar NADA entre createServerClient y getClaims(): cualquier await en
   // el medio desincroniza el refresh del token y produce logouts aleatorios.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  //
+  // getClaims() y no getUser(): con llaves de firma asimétricas verifica el JWT
+  // localmente contra el JWKS del proyecto, que queda cacheado, en vez de
+  // preguntarle al servidor de Auth en cada request. Refresca la sesión antes
+  // de validar si el token está por vencer, así que el manejo de cookies es el
+  // mismo. Si el proyecto volviera a firmar con el secreto simétrico, esto pasa
+  // solo a comportarse como getUser(): más lento, nunca incorrecto.
+  const { data } = await supabase.auth.getClaims();
+  const autenticado = Boolean(data?.claims.sub);
 
-  if (!user && !isPublic(pathname)) {
+  if (!autenticado && !isPublic(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     // Para volver a donde quería entrar después de autenticarse.
@@ -51,7 +57,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname === "/login") {
+  if (autenticado && pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
