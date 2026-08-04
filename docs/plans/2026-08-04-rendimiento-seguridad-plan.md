@@ -1061,27 +1061,24 @@ arrastrar nada.
 **Files:**
 - Modify: `proxy.ts:41-46`
 
-**Precondición que no está en el código:** el proyecto tiene que usar llaves de
-firma asimétricas. Supabase → Authentication → JWT Keys → migrar a ECC. **Sin
-eso el cambio es correcto pero no acelera nada**: `getClaims()` cae al mismo
-pedido de red que hacía `getUser()`.
+**Precondición:** el proyecto tiene que usar llaves de firma asimétricas. **Ya
+las usa** — verificado el 2026-08-04, el JWKS devuelve una clave `alg=ES256`,
+`kty=EC`. No hay nada que hacer en el dashboard.
 
-- [ ] **Step 1: Migrar las llaves en el dashboard de Supabase**
+Si alguna vez el proyecto volviera a firmar con el secreto simétrico, este
+cambio sigue siendo correcto: `getClaims()` pasa a comportarse como `getUser()`,
+más lento pero nunca incorrecto.
 
-Entrar a Supabase → el proyecto de hubby → Authentication → JWT Keys, y migrar a
-una llave asimétrica (ECC P-256).
-
-Expected: el proyecto queda firmando con `ES256`/`RS256` y expone
-`https://<proyecto>.supabase.co/auth/v1/.well-known/jwks.json`.
-
-Verificarlo:
+- [x] **Step 1: Confirmar que el proyecto firma con llaves asimétricas**
 
 ```bash
-curl -s "$NEXT_PUBLIC_SUPABASE_URL/auth/v1/.well-known/jwks.json" | head -c 200
+URL=$(grep NEXT_PUBLIC_SUPABASE_URL .env.local | cut -d= -f2- | tr -d '"'"'"')
+curl -s "$URL/auth/v1/.well-known/jwks.json"
 ```
 
-Expected: un JSON con una clave `keys` que no está vacía. Si viene vacía, la
-migración no se aplicó.
+Expected: un JSON cuyo `keys` no está vacío y cuyas claves tienen `"alg"` de
+familia asimétrica (`ES256`, `RS256`). Si `keys` viene vacío, hay que migrar en
+Supabase → Authentication → JWT Keys antes de seguir.
 
 - [ ] **Step 2: Medir el antes**
 

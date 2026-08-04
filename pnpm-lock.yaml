@@ -66,9 +66,6 @@ importers:
       eslint-config-next:
         specifier: 16.2.12
         version: 16.2.12(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
-      konsta:
-        specifier: ^5.3.0
-        version: 5.3.0
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
@@ -2500,10 +2497,6 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
-
-  konsta@5.3.0:
-    resolution: {integrity: sha512-4KjAcQiczKSvbr/hgx9g0CLoJStqjE3DvAIhFJeN05WGi8lYu5b/6f2hdwnmtiq6K4QumY96usStEofH21pdbQ==}
-    engines: {node: '>= 4.7.0'}
 
   language-subtag-registry@0.3.23:
     resolution: {integrity: sha512-0K65Lea881pHotoGEa5gDlMxt3pctLi2RplBb7Ezh4rRdLEOtgi7n4EwK9lamnUCkKBqaeKRVebTq6BAxSkpXQ==}
@@ -5864,10 +5857,6 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
-
-  konsta@5.3.0:
-    dependencies:
-      tailwind-merge: 3.6.0
 
   language-subtag-registry@0.3.23: {}
 
