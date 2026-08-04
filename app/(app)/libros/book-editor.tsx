@@ -140,6 +140,9 @@ function Formulario({
               <img
                 src={portada}
                 alt=""
+                // Ídem la lista: el host de la portada no tiene por qué saber
+                // desde dónde se lo llamó.
+                referrerPolicy="no-referrer"
                 className="bg-sand h-[54px] w-9 shrink-0 rounded-sm object-cover"
               />
             ) : (

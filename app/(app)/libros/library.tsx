@@ -519,6 +519,9 @@ function Portada({
       src={url}
       alt={`Portada de ${titulo}`}
       loading="lazy"
+      // La URL de la portada la puede pegar cualquiera y apunta a donde sea.
+      // Sin esto, ese host se entera de qué pantalla de hubby la pidió.
+      referrerPolicy="no-referrer"
       width={ancho}
       height={alto}
       // <img> y no next/image: ya iba unoptimized, así que no había nada que
