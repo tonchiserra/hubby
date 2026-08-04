@@ -7,15 +7,15 @@
 -- ---------------------------------------------------------------------------
 
 /**
- * Devuelve numeros crudos, no resumenes. Que significa cada numero -si el
- * modulo reclama atencion, que dice la linea de estado- lo siguen decidiendo
+ * Devuelve números crudos, no resúmenes. Qué significa cada número -si el
+ * módulo reclama atención, qué dice la línea de estado- lo siguen decidiendo
  * los build*Summary en TypeScript, que se prueban sin base de datos.
  *
- * Antes el panel hacia nueve consultas a PostgREST para pintar cuatro
- * tarjetas. Tareas queda afuera a proposito: su resumen tiene que aplicar los
- * reinicios vencidos y esa logica vive en TS.
+ * Antes el panel hacía nueve consultas a PostgREST para pintar cuatro
+ * tarjetas. Tareas queda afuera a propósito: su resumen tiene que aplicar los
+ * reinicios vencidos y esa lógica vive en TS.
  *
- * SECURITY INVOKER: corre con los permisos de quien llama, asi que RLS sigue
+ * SECURITY INVOKER: corre con los permisos de quien llama, así que RLS sigue
  * aplicando y nadie ve los contadores de otro.
  */
 create or replace function public.panel_resumen()
@@ -48,8 +48,8 @@ as $$
   ),
   libros_conteo as (
     select
-      -- El anio se toma en la zona de la app y no en UTC, que es donde corre
-      -- el servidor. El 31 de diciembre a la noche, en UTC ya es el anio que
+      -- El año se toma en la zona de la app y no en UTC, que es donde corre
+      -- el servidor. El 31 de diciembre a la noche, en UTC ya es el año que
       -- viene y los libros terminados dejarian de contar antes de tiempo.
       count(*) filter (
         where status = 'leido'
@@ -117,12 +117,12 @@ comment on function public.panel_resumen is
 -- ---------------------------------------------------------------------------
 
 /**
- * Cada lista guarda la fecha que le tocaba, no la de hoy, asi que las marcas
+ * Cada lista guarda la fecha que le tocaba, no la de hoy, así que las marcas
  * son distintas entre si y no se pueden resolver con un update plano. Antes se
  * mandaba un update por lista.
  *
- * Mismo patron que reorder_books: los dos arreglos vienen alineados por
- * posicion y unnest de dos argumentos los recorre en paralelo.
+ * Mismo patrón que reorder_books: los dos arreglos vienen alineados por
+ * posición y unnest de dos argumentos los recorre en paralelo.
  */
 create or replace function public.marcar_reinicios(ids uuid[], marcas date[])
 returns void
@@ -140,7 +140,7 @@ comment on function public.marcar_reinicios is
   'Marca el reinicio aplicado de varias listas, cada una con la fecha que le tocaba.';
 
 -- ---------------------------------------------------------------------------
--- 3. Politicas: auth.uid() una vez por consulta, no una por fila.
+-- 3. Políticas: auth.uid() una vez por consulta, no una por fila.
 -- ---------------------------------------------------------------------------
 
 -- Envuelto en (select ...) Postgres lo evalua como InitPlan, una sola vez.
@@ -171,15 +171,15 @@ create policy "task_lists_owner"
   with check ((select auth.uid()) = user_id);
 
 /**
- * tasks lleva ademas la comprobacion de que list_id sea de una lista tuya.
+ * tasks lleva además la comprobación de que list_id sea de una lista tuya.
  *
  * La foreign key solo garantiza que la lista exista, y addTask recibe el
  * list_id del cliente: sin esto se puede insertar una tarea propia colgando de
- * la lista de otro. Queda huerfana e invisible para los dos, pero es una fila
- * que no deberia poder escribirse.
+ * la lista de otro. Queda huérfana e invisible para los dos, pero es una fila
+ * que no debería poder escribirse.
  *
- * Va solo en `with check` y no en `using`: es una condicion de escritura, y
- * meterla en `using` encareceria todas las lecturas para cubrir un caso que
+ * Va solo en `with check` y no en `using`: es una condición de escritura, y
+ * meterla en `using` encarecería todas las lecturas para cubrir un caso que
  * solo ocurre al insertar o mover una fila.
  */
 drop policy "tasks_owner" on public.tasks;
@@ -215,17 +215,17 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 5. El indice del super, alineado con el orden que la consulta pide.
+-- 5. El índice del super, alineado con el orden que la consulta pide.
 -- ---------------------------------------------------------------------------
 
 -- Estaba sobre lower(trim(name)) pero las consultas ordenan por name pelado,
--- asi que el indice no servia para el orden y Postgres ordenaba en memoria.
--- El indice unico sobre lower(trim(name)) sigue existiendo aparte: ese es el
+-- así que el índice no servía para el orden y Postgres ordenaba en memoria.
+-- El índice unico sobre lower(trim(name)) sigue existiendo aparte: ese es el
 -- que evita duplicados y no es este.
 --
 -- Se indexa (user_id, active, name) y no (user_id, name): la consulta que se
 -- beneficia es la del panel, que filtra por active y corta en tres. La lectura
--- de la pantalla se trae el inventario entero, asi que ningun indice le evita
+-- de la pantalla se trae el inventario entero, así que ningún índice le evita
 -- leer todas las filas.
 drop index if exists public.grocery_items_user_active_name_idx;
 
