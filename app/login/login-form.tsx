@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm({ next }: { next?: string }) {
+export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,9 @@ export function LoginForm({ next }: { next?: string }) {
 
     // El cliente del navegador ya dejó las cookies puestas; refresh() hace que
     // el servidor vuelva a renderizar viendo la sesión nueva.
-    router.replace(next?.startsWith("/") ? next : "/");
+    // Ya viene validada por rutaInterna() en la page: acá no se vuelve a
+    // decidir, para que no haya dos reglas que puedan divergir.
+    router.replace(next);
     router.refresh();
   }
 

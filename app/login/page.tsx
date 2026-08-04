@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { rutaInterna } from "@/lib/rutas";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { LoginForm } from "./login-form";
 
@@ -21,7 +22,9 @@ export default async function LoginPage({
         </p>
       </header>
 
-      <LoginForm next={next} />
+      {/* Validado acá y no en el formulario: el cliente recibe una ruta que ya
+          se sabe de este sitio, y así hay un solo lugar donde puede fallar. */}
+      <LoginForm next={rutaInterna(next)} />
     </main>
   );
 }
