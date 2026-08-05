@@ -71,18 +71,17 @@ async function aplicarReinicios(
   // Cada lista guarda la fecha que le tocaba, no la de hoy: una lista mensual
   // que se reinicia el 5 pero se abre el 20 tiene que quedar marcada el 5, o el
   // mes que viene el cálculo arranca corrido.
-  const marcadas = await Promise.all(
-    vencidas.map(({ lista, marca }) =>
-      supabase
-        .from("task_lists")
-        .update({ last_reset_on: marca })
-        .eq("id", lista.id),
-    ),
-  );
+  //
+  // Como cada marca es distinta, no alcanza con un update plano: van los dos
+  // arreglos alineados por posición a una función de Postgres, en vez de una
+  // request por lista.
+  const { error: marcarError } = await supabase.rpc("marcar_reinicios", {
+    ids,
+    marcas: vencidas.map((v) => v.marca),
+  });
 
-  const falla = marcadas.find((r) => r.error);
-  if (falla?.error) {
-    console.error("[tareas] no se pudo marcar el reinicio", falla.error);
+  if (marcarError) {
+    console.error("[tareas] no se pudo marcar el reinicio", marcarError);
   }
 
   const porId = new Map(vencidas.map((v) => [v.lista.id, v.marca]));
