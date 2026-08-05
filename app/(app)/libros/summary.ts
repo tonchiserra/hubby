@@ -1,5 +1,5 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
+import { getPanelCounters } from "@/lib/modules/panel-counters";
 import type { ModuleSummary } from "@/lib/modules/summary";
 
 /**
@@ -39,34 +39,14 @@ export function buildBooksSummary({
 }
 
 export async function getBooksSummary(): Promise<ModuleSummary> {
-  const supabase = await createClient();
-  const anio = new Date().getFullYear();
-
-  const [leyendo, leidos, todos] = await Promise.all([
-    supabase
-      .from("books")
-      .select("title")
-      .eq("status", "leyendo")
-      .order("title")
-      .limit(3),
-    // El año se puede cargar en cualquier estado, así que "terminados" pide
-    // las dos condiciones: un libro empezado el año pasado y todavía en
-    // progreso tiene año, pero no cuenta como terminado.
-    supabase
-      .from("books")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "leido")
-      .eq("read_year", anio),
-    supabase.from("books").select("*", { count: "exact", head: true }),
-  ]);
-
-  if (leyendo.error || leidos.error || todos.error) {
-    throw new Error("No se pudo leer el resumen de libros");
-  }
+  // El año lo calcula la consulta, en la zona de la app. Antes salía de
+  // `new Date().getFullYear()` sobre el reloj del servidor, que en Vercel es
+  // UTC: el 31 de diciembre a la noche ya contaba el año siguiente.
+  const { books } = await getPanelCounters();
 
   return buildBooksSummary({
-    leyendo: (leyendo.data ?? []).map((b) => b.title),
-    leidosEsteAnio: leidos.count ?? 0,
-    total: todos.count ?? 0,
+    leyendo: books.leyendo,
+    leidosEsteAnio: books.leidos_anio,
+    total: books.total,
   });
 }
