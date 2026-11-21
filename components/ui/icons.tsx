@@ -107,6 +107,7 @@ export const EyeIcon = make(
 );
 export const CheckIcon = make("CheckIcon", <path d="M5 12.5l4.5 4.5L19 7.5" />);
 export const CaretRightIcon = make("CaretRightIcon", <path d="M9 6l6 6-6 6" />);
+export const CaretDownIcon = make("CaretDownIcon", <path d="M6 9l6 6 6-6" />);
 export const ArrowUpRightIcon = make("ArrowUpRightIcon", <path d="M7 17 17 7m0 0H9m8 0v8" />);
 export const ArrowSquareOutIcon = make("ArrowSquareOutIcon", <path d="M14 4h6v6m0-6-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />);
 export const ArrowLeftIcon = make("ArrowLeftIcon", <path d="M19 12H5m0 0 6-6m-6 6 6 6" />);

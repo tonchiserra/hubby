@@ -77,6 +77,13 @@
   --shadow-card: 0 0 0 1px var(--line);
   --shadow-hover: 0 30px 40px -30px rgb(35 31 32 / 0.3);
   --shadow-float: 0 4px 12px rgb(0 0 0 / 0.15);
+  /* Una tapa de libro es un objeto, no una tarjeta: apoya sobre la página. */
+  --shadow-cover:
+    0 0 0 1px rgb(35 31 32 / 0.06), 0 1px 2px rgb(35 31 32 / 0.1),
+    0 12px 24px -14px rgb(35 31 32 / 0.45);
+  /* Lo que se levanta para arrastrar: un anillo del color de la tarjeta, que
+     hace de margen sin mover el layout, y la sombra de lo que flota. */
+  --shadow-lift: 0 0 0 8px var(--card), 0 18px 36px -8px rgb(35 31 32 / 0.28);
 
   /* ---------- Movimiento ---------- */
   --t-rapida: 0.15s;
@@ -132,6 +139,8 @@
 
   --shadow-hover: 0 30px 40px -30px rgb(0 0 0 / 0.7);
   --shadow-float: 0 4px 16px rgb(0 0 0 / 0.5);
+  --shadow-cover: 0 0 0 1px var(--line), 0 12px 24px -12px rgb(0 0 0 / 0.8);
+  --shadow-lift: 0 0 0 8px var(--card), 0 18px 36px -8px rgb(0 0 0 / 0.7);
 
   color-scheme: dark;
 }
@@ -158,6 +167,8 @@
   --shadow-card: var(--shadow-card);
   --shadow-hover: var(--shadow-hover);
   --shadow-float: var(--shadow-float);
+  --shadow-cover: var(--shadow-cover);
+  --shadow-lift: var(--shadow-lift);
 
   --ease-out: var(--ease-out-kit);
   --ease-spring: var(--ease-spring-kit);
@@ -486,6 +497,31 @@
     grid-template-rows: 0fr;
     margin-top: calc(var(--presence-gap, 0px) * -1);
     opacity: 0;
+  }
+}
+
+/* Celdas de una grilla (PresenceGrid). La altura no puede viajar como en una
+   lista: una celda que se va sale del flujo y se desvanece en su lugar
+   mientras las demás se deslizan al hueco (eso lo anima PresenceGrid con
+   `translate`). Acá se usa `scale` suelto y no `transform`, que es del
+   arrastre: así no se pisan. */
+.celda[data-enter] {
+  animation: celda-in 0.4s var(--ease-out-kit);
+}
+.celda[data-leaving] {
+  animation: celda-out 0.24s var(--ease-out-kit) forwards;
+  pointer-events: none;
+}
+@keyframes celda-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+@keyframes celda-out {
+  to {
+    opacity: 0;
+    scale: 0.9;
   }
 }
 

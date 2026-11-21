@@ -22,6 +22,7 @@ const SIN_CHIP: Record<string, string> = {
   "components/hubby/module-card.tsx:ArrowUpRightIcon": "afordancia de navegación",
   "components/ui/sheet.tsx:XIcon": "afordancia de cierre de la hoja",
   "app/(app)/deseos/wishlist.tsx:ArrowSquareOutIcon": "afordancia de navegación, sale de la app",
+  "components/ui/select-pill.tsx:CaretDownIcon": "afordancia del control: abre el selector",
 
   // Íconos que son el dato o el estado de su propio control.
   "components/ui/star-rating.tsx:StarIcon": "las estrellas son el dato",
@@ -46,6 +47,7 @@ const SIN_CHIP: Record<string, string> = {
   "app/(app)/tareas/tasks.tsx:PlusIcon": "va adentro de un botón",
   "app/(app)/tareas/tasks.tsx:SlidersHorizontalIcon": "va adentro de un botón",
   "app/(app)/tareas/list-editor.tsx:TrashIcon": "va adentro de un botón destructivo",
+  "app/(app)/libros/book-editor.tsx:TrashIcon": "va adentro de un botón destructivo",
   "app/(app)/supermercado/pantry.tsx:DownloadSimpleIcon": "va adentro de un botón",
   "app/(app)/supermercado/download-button.tsx:DownloadSimpleIcon":
     "va adentro de un botón",
@@ -55,7 +57,7 @@ const SIN_CHIP: Record<string, string> = {
   "app/(app)/ajustes/page.tsx:SignOutIcon": "va adentro de un botón destructivo",
 
   // El hueco de una portada tiene la forma de una tapa, no de un círculo.
-  "app/(app)/libros/library.tsx:BookOpenIcon": "marcador de portada, es rectangular",
+  "app/(app)/libros/book-card.tsx:BookOpenIcon": "marcador de portada, es rectangular",
   "app/(app)/libros/book-editor.tsx:BookOpenIcon": "marcador de portada, es rectangular",
 };
 

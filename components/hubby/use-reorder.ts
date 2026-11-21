@@ -2,112 +2,155 @@
 
 import { useEffect, useRef } from "react";
 
+/** Distancia al borde de la pantalla desde la que el arrastre desplaza la página. */
+const BORDE_PX = 80;
+/** Velocidad del desplazamiento con el dedo pegado al borde, en px por cuadro. */
+const VELOCIDAD_MAX = 18;
+/** --ease-out-kit: los estilos en línea no leen variables CSS en transiciones armadas a mano. */
+const CURVA = "cubic-bezier(0.22, 1, 0.36, 1)";
+
 /**
- * Reordenar una lista arrastrando, sin `motion`.
+ * Reordenar arrastrando, en una lista o en una grilla, sin `motion`.
  *
- * Reemplaza al `Reorder` de motion, que era la razón principal para cargar la
- * librería en Libros. El gesto es el mismo: el arrastre lo arranca quien usa
- * el hook -en Libros, una presión sostenida- y desde ahí la fila sigue al
- * dedo mientras las demás se corren para dejarle lugar.
+ * El arrastre lo arranca quien usa el hook -en Libros, una presión sostenida-
+ * y desde ahí la celda sigue al dedo en las dos direcciones mientras las demás
+ * se corren a su lugar nuevo.
+ *
+ * Funciona por huecos: al empezar se mide la caja de cada celda, y reordenar
+ * es mandar cada una a la caja del lugar que le toca. El lugar de destino es
+ * el hueco cuyo centro queda más cerca del centro de lo que se arrastra. Así
+ * no importa si las celdas van en una columna o en cuatro.
+ *
+ * Las cajas se miden contra el contenedor (que tiene que ser `relative`, como
+ * el de PresenceGrid), no contra la pantalla: el dedo cerca del borde hace
+ * scroll, y medido así el scroll no desarma nada.
  *
  * Todo pasa tocando el DOM con refs, como en SwipeRow: con estado de React
  * cada movimiento del dedo sería un render entero. React recién se entera al
- * soltar, con el orden nuevo.
- *
- * Las filas se buscan por `data-key` dentro del contenedor: son los
- * envoltorios de PresenceList, que no recortan su contenido (el recorte está
- * en el hijo), así que se pueden desplazar sin que la fila se corte.
+ * soltar, con el orden nuevo. Cómo se ve lo levantado lo decide quien usa el
+ * hook, con `onStart`: acá solo se mueve.
  */
 export function useReorder({
   onStart,
   onEnd,
 }: {
   onStart?: (key: string) => void;
-  /** El orden que quedó, o `null` si la fila volvió a su lugar. */
+  /** El orden que quedó, o `null` si la celda volvió a su lugar. */
   onEnd: (keys: string[] | null) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const cleanup = useRef<(() => void) | null>(null);
+  // Sigue ocupado durante el aterrizaje, después de soltar: un arrastre nuevo
+  // en esos 200ms mediría las celdas todavía corridas.
+  const ocupado = useRef(false);
 
   // Si la pantalla se desmonta en pleno arrastre, se sueltan los listeners.
   useEffect(() => () => cleanup.current?.(), []);
 
-  function start(key: string, clientY: number) {
+  function start(key: string, punto: { x: number; y: number }) {
     const root = container.current;
-    if (!root) return;
+    if (!root || ocupado.current) return;
 
-    const rows = Array.from(root.querySelectorAll<HTMLElement>(":scope > [data-key]")).filter(
+    const cells = Array.from(root.querySelectorAll<HTMLElement>(":scope > [data-key]")).filter(
       (el) => !el.hasAttribute("data-leaving"),
     );
-    const keys = rows.map((el) => el.dataset.key!);
+    const keys = cells.map((el) => el.dataset.key!);
     const from = keys.indexOf(key);
     if (from === -1) return;
+    ocupado.current = true;
 
-    const heights = rows.map((el) => el.getBoundingClientRect().height);
-    const tops = rows.map((el) => el.getBoundingClientRect().top);
-    const dragged = rows[from];
-    const size = heights[from];
+    const huecos = cells.map((el) => ({
+      x: el.offsetLeft,
+      y: el.offsetTop,
+      w: el.offsetWidth,
+      h: el.offsetHeight,
+    }));
+    const origen = huecos[from];
+    const dragged = cells[from];
+    const r0 = root.getBoundingClientRect();
+    const agarre = { x: punto.x - r0.left, y: punto.y - r0.top };
+    let dedo = punto;
     let to = from;
 
     onStart?.(key);
     navigator.vibrate?.(8);
 
-    rows.forEach((el, i) => {
+    cells.forEach((el, i) => {
       el.style.transition =
-        i === from
-          ? "box-shadow 200ms ease, scale 200ms ease"
-          : "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)";
+        i === from ? `scale 200ms ${CURVA}` : `transform 240ms ${CURVA}`;
     });
     dragged.style.position = "relative";
     dragged.style.zIndex = "10";
-    dragged.style.scale = "1.02";
-    dragged.style.boxShadow = "var(--shadow-float)";
+    dragged.style.scale = "1.04";
 
-    const centre = tops[from] + size / 2;
+    const mover = () => {
+      const r = root.getBoundingClientRect();
+      const dx = dedo.x - r.left - agarre.x;
+      const dy = dedo.y - r.top - agarre.y;
+      dragged.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
 
-    const move = (e: PointerEvent) => {
-      const dy = e.clientY - clientY;
-      dragged.style.transform = `translate3d(0, ${dy}px, 0)`;
-
-      // El lugar nuevo es cuántas de las otras filas quedan con el centro por
-      // encima del centro de la que se arrastra.
-      const now = centre + dy;
-      let target = 0;
-      rows.forEach((_, i) => {
-        if (i !== from && tops[i] + heights[i] / 2 < now) target++;
+      const cx = origen.x + origen.w / 2 + dx;
+      const cy = origen.y + origen.h / 2 + dy;
+      let destino = to;
+      let mejor = Infinity;
+      huecos.forEach((h, i) => {
+        const d = (h.x + h.w / 2 - cx) ** 2 + (h.y + h.h / 2 - cy) ** 2;
+        if (d < mejor) {
+          mejor = d;
+          destino = i;
+        }
       });
-      if (target === to) return;
-      to = target;
+      if (destino === to) return;
+      to = destino;
 
-      rows.forEach((el, i) => {
+      // orden[j] es la celda que queda en el hueco j.
+      const orden = cells.map((_, i) => i);
+      orden.splice(to, 0, orden.splice(from, 1)[0]);
+      orden.forEach((i, j) => {
         if (i === from) return;
-        const shift =
-          from < to && i > from && i <= to
-            ? -size
-            : to < from && i >= to && i < from
-              ? size
-              : 0;
-        el.style.transform = shift ? `translate3d(0, ${shift}px, 0)` : "";
+        const x = huecos[j].x - huecos[i].x;
+        const y = huecos[j].y - huecos[i].y;
+        cells[i].style.transform = x || y ? `translate3d(${x}px, ${y}px, 0)` : "";
       });
     };
 
-    // Sin esto el navegador toma el arrastre vertical como scroll. Tiene que
-    // ser no pasivo para poder cancelarlo.
+    const move = (e: PointerEvent) => {
+      dedo = { x: e.clientX, y: e.clientY };
+      mover();
+    };
+
+    // Con el dedo cerca del borde la página se desplaza sola: si no, una tapa
+    // de abajo no se podría llevar arriba de todo, porque mientras se arrastra
+    // el scroll está bloqueado.
+    let cuadro = 0;
+    const desplazar = () => {
+      const alto = window.innerHeight;
+      const fuerza =
+        dedo.y < BORDE_PX
+          ? -(1 - dedo.y / BORDE_PX)
+          : dedo.y > alto - BORDE_PX
+            ? 1 - (alto - dedo.y) / BORDE_PX
+            : 0;
+      if (fuerza) {
+        window.scrollBy(0, Math.max(-1, Math.min(1, fuerza)) * VELOCIDAD_MAX);
+        mover();
+      }
+      cuadro = requestAnimationFrame(desplazar);
+    };
+    cuadro = requestAnimationFrame(desplazar);
+
+    // Sin esto el navegador toma el arrastre como scroll. Tiene que ser no
+    // pasivo para poder cancelarlo.
     const block = (e: TouchEvent) => e.preventDefault();
 
     const finish = () => {
       cleanup.current?.();
 
-      // La fila termina de ir a su lugar y recién ahí se reordena el DOM.
-      const offset =
-        to > from
-          ? heights.slice(from + 1, to + 1).reduce((a, b) => a + b, 0)
-          : -heights.slice(to, from).reduce((a, b) => a + b, 0);
-      dragged.style.transition =
-        "transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease, scale 200ms ease";
-      dragged.style.transform = `translate3d(0, ${offset}px, 0)`;
+      // La celda termina de ir a su hueco y recién ahí se reordena el DOM.
+      const llegada = huecos[to];
+      dragged.style.transition = `transform 200ms ${CURVA}, scale 200ms ${CURVA}`;
+      dragged.style.transform = `translate3d(${llegada.x - origen.x}px, ${llegada.y - origen.y}px, 0)`;
       dragged.style.scale = "";
-      dragged.style.boxShadow = "";
 
       window.setTimeout(() => {
         const next = [...keys];
@@ -115,13 +158,14 @@ export function useReorder({
         // onEnd reordena con flushSync; después se limpian los desplazamientos
         // sin transición, así no hay un cuadro con el orden viejo.
         onEnd(to === from ? null : next);
-        rows.forEach((el) => {
+        cells.forEach((el) => {
           el.style.transition = "none";
           el.style.transform = "";
           el.style.position = "";
           el.style.zIndex = "";
         });
-        requestAnimationFrame(() => rows.forEach((el) => (el.style.transition = "")));
+        requestAnimationFrame(() => cells.forEach((el) => (el.style.transition = "")));
+        ocupado.current = false;
       }, 200);
     };
 
@@ -130,6 +174,7 @@ export function useReorder({
     window.addEventListener("pointercancel", finish);
     document.addEventListener("touchmove", block, { passive: false });
     cleanup.current = () => {
+      cancelAnimationFrame(cuadro);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", finish);
       window.removeEventListener("pointercancel", finish);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpenIcon } from "@/components/ui/icons";
+import { BookOpenIcon, TrashIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Field, Sheet, SheetActions } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/segmented";
@@ -20,17 +20,19 @@ export type BookDraft = {
 
 /**
  * Editor del libro. Es el único lugar donde se cambian estado, formato y
- * valoración: en la lista esos datos son de lectura, así que recorrerla no
- * puede modificar nada por accidente.
+ * valoración, y donde se borra: en la grilla esos datos son de lectura, así
+ * que recorrerla no puede modificar nada por accidente.
  */
 export function BookEditor({
   book,
   onOpenChange,
   onSave,
+  onDelete,
 }: {
   book: Book | null;
   onOpenChange: (open: boolean) => void;
   onSave: (draft: BookDraft) => void;
+  onDelete: () => void;
 }) {
   // La hoja se queda con el último libro mientras se cierra: así se va con el
   // formulario puesto en vez de vaciarse antes de terminar de bajar.
@@ -50,6 +52,7 @@ export function BookEditor({
             onSave(draft);
             onOpenChange(false);
           }}
+          onDelete={onDelete}
         />
       )}
     </Sheet>
@@ -60,10 +63,12 @@ function Formulario({
   book,
   onCancel,
   onSave,
+  onDelete,
 }: {
   book: Book;
   onCancel: () => void;
   onSave: (draft: BookDraft) => void;
+  onDelete: () => void;
 }) {
   const [title, setTitle] = useState(book.title);
   const [author, setAuthor] = useState(book.author ?? "");
@@ -74,6 +79,10 @@ function Formulario({
   const [readYear, setReadYear] = useState<string>(
     book.read_year ? String(book.read_year) : "",
   );
+  // Borrar se lleva la valoración y el año que cargaste: pide un segundo
+  // toque. Antes se borraba deslizando la fila, que ya era un gesto
+  // deliberado; un botón al lado de Guardar no lo es.
+  const [confirmando, setConfirmando] = useState(false);
 
   const limpio = title.trim();
   const anioValido = readYear === "" || /^\d{4}$/.test(readYear.trim());
@@ -212,6 +221,40 @@ function Formulario({
             className="field cifra w-24"
           />
         </Field>
+
+        {confirmando ? (
+          <div
+            role="alert"
+            className="bg-danger-wash flex flex-col gap-3 rounded-lg p-4 animate-[rise_0.3s_var(--ease-out-kit)_both]"
+          >
+            <p className="text-footnote text-ink">
+              Se borra el libro con su valoración y su año. No se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button type="button" size="sm" variant="quiet" onClick={() => setConfirmando(false)}>
+                No, dejarlo
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={onDelete}
+                className="bg-danger text-paper hover:bg-danger hover:brightness-95"
+              >
+                <TrashIcon size={16} />
+                Sí, borrar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => setConfirmando(true)}
+            className="-ml-3 self-start animate-[fade_0.25s_var(--ease-out-kit)_both]"
+          >
+            Borrar libro
+          </Button>
+        )}
       </div>
 
       <SheetActions>

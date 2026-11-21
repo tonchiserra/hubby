@@ -148,7 +148,11 @@ Dos reglas que el código da por sentadas:
   - Filas y bloques que entran y salen: `PresenceList` y `Reveal`
     (`components/hubby/presence.tsx`). Un bloque suelto dentro de un `flex gap-*` declara ese gap
     con `[--presence-gap:…]` para no dejar un salto al irse.
-  - Reordenar arrastrando: `useReorder` (`components/hubby/use-reorder.ts`).
+  - Grillas (la de Libros): `PresenceGrid` (`components/hubby/presence-grid.tsx`). Lo que se va
+    sale del flujo y se desvanece en su lugar; lo que se mueve se anima con FLIP sobre `translate`.
+    `translate` es del FLIP y `transform` del arrastre: ninguno de los dos va a mano en una celda.
+  - Reordenar arrastrando, en lista o en grilla: `useReorder` (`components/hubby/use-reorder.ts`).
+    Mide contra un contenedor `relative`, como el de `PresenceGrid`.
   - Páginas: `<ViewTransition default="page">` en `app/(app)/layout.tsx`. Lo que no es navegación
     (el tema) pasa por `withViewTransition`.
   - Con `prefers-reduced-motion` las animaciones duran 0,01ms en vez de desaparecer, para que

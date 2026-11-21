@@ -5,47 +5,51 @@ import { flushSync } from "react-dom";
 import {
   BookOpenIcon,
   MagnifyingGlassIcon,
-  PencilSimpleIcon,
   PlusIcon,
-  TrashIcon,
   XCircleIcon,
 } from "@/components/ui/icons";
 
-import { StarRating } from "@/components/ui/star-rating";
-import { Tag } from "@/components/ui/tag";
-import { BookEditor, type BookDraft } from "./book-editor";
-import { SwipeRow } from "@/components/hubby/swipe-row";
+import { Button } from "@/components/ui/button";
+import { SelectPill } from "@/components/ui/select-pill";
 import { EmptyState } from "@/components/hubby/empty-state";
-import { ListGroup } from "@/components/hubby/list";
-import { PresenceList, Reveal } from "@/components/hubby/presence";
+import { Reveal } from "@/components/hubby/presence";
+import { PresenceGrid } from "@/components/hubby/presence-grid";
 import { useReorder } from "@/components/hubby/use-reorder";
 import { cn } from "@/lib/utils";
-import type { Book, BookStatus } from "@/lib/supabase/types";
+import type { Book } from "@/lib/supabase/types";
+import { BookCard, Portada } from "./book-card";
+import { BookEditor, type BookDraft } from "./book-editor";
 import { addBook, deleteBook, reorderBooks, updateBook } from "./actions";
+import {
+  aniosDeLectura,
+  cumpleValoracion,
+  filtrarLibros,
+  norm,
+  ordenarLibros,
+  reordenarSubconjunto,
+  type FiltroValoracion,
+  type Orden,
+} from "./grid";
 import { searchBooks, type BookResult } from "./open-library";
-
-const norm = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-
-/** Cuánto hay que mantener apretado antes de que arranque el arrastre. */
-const PRESION_MS = 400;
-/** Movimiento horizontal que descarta el arrastre: eso es un swipe. */
-const SLOP_PX = 8;
 
 /** Lo que se espera a que dejes de escribir antes de consultar. */
 const DEBOUNCE_MS = 400;
 
-const ETIQUETA: Record<BookStatus, string> = {
-  leyendo: "En progreso",
-  quiero: "No leído",
-  leido: "Leído",
-};
+const ORDENES: { value: Orden; label: string }[] = [
+  { value: "manual", label: "Mi orden" },
+  { value: "recientes", label: "Recién agregados" },
+  { value: "titulo", label: "Por título" },
+  { value: "autor", label: "Por autor" },
+  { value: "valoracion", label: "Mejor valorados" },
+];
 
+const VALORACIONES: { value: FiltroValoracion; label: string }[] = [
+  { value: "todas", label: "Cualquier valoración" },
+  { value: "5", label: "5 estrellas" },
+  { value: "4", label: "Desde 4 estrellas" },
+  { value: "3", label: "Desde 3 estrellas" },
+  { value: "sin", label: "Sin valorar" },
+];
 
 type Patch =
   | { type: "save"; id: string; draft: BookDraft }
@@ -87,6 +91,9 @@ export function Library({ books }: { books: Book[] }) {
   const [editando, setEditando] = useState<Book | null>(null);
   const [ordenLocal, setOrdenLocal] = useState<Book[] | null>(null);
   const [arrastrando, setArrastrando] = useState<string | null>(null);
+  const [orden, setOrden] = useState<Orden>("manual");
+  const [anio, setAnio] = useState<number | null>(null);
+  const [valoracion, setValoracion] = useState<FiltroValoracion>("todas");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const run = (patch: Patch, action: () => Promise<{ error?: string }>) =>
@@ -97,9 +104,9 @@ export function Library({ books }: { books: Book[] }) {
     });
 
   /**
-   * Orden que se está viendo. Mientras arrastrás manda el local; cuando cambia
-   * la composición de la lista -agregaste o borraste- se vuelve al del
-   * servidor. Se deduce en el render, sin efectos que sincronicen nada.
+   * Orden manual que se está viendo. Mientras arrastrás manda el local; cuando
+   * cambia la composición de la biblioteca -agregaste o borraste- se vuelve al
+   * del servidor. Se deduce en el render, sin efectos que sincronicen nada.
    */
   const ordenados = useMemo(() => {
     if (!ordenLocal) return shown;
@@ -113,6 +120,37 @@ export function Library({ books }: { books: Book[] }) {
     // editaste un libro mientras tanto, se ve el cambio sin perder tu orden.
     return mismosLibros ? ordenLocal.map((b) => porId.get(b.id)!) : shown;
   }, [ordenLocal, shown]);
+
+  const anios = useMemo(() => aniosDeLectura(shown), [shown]);
+  // Si el año elegido dejó de existir -editaste el único libro de ese año-, el
+  // filtro se cae solo en vez de dejarte en una grilla vacía sin opción.
+  const anioActivo = anio !== null && anios.includes(anio) ? anio : null;
+  const hayFiltros = anioActivo !== null || valoracion !== "todas";
+
+  const visibles = useMemo(
+    () =>
+      ordenarLibros(
+        filtrarLibros(ordenados, { anio: anioActivo, valoracion, texto: query }),
+        orden,
+      ),
+    [ordenados, anioActivo, valoracion, query, orden],
+  );
+
+  // Cada contador cuenta con los demás filtros puestos: "2025 · 3" son los
+  // tres de 2025 que cumplen la valoración elegida, no todos los de 2025.
+  const porAnio = useMemo(() => {
+    const base = filtrarLibros(shown, { anio: null, valoracion, texto: query });
+    const cuenta = new Map<number, number>();
+    base.forEach((b) => b.read_year !== null && cuenta.set(b.read_year, (cuenta.get(b.read_year) ?? 0) + 1));
+    return cuenta;
+  }, [shown, valoracion, query]);
+
+  const porValoracion = useMemo(() => {
+    const base = filtrarLibros(shown, { anio: anioActivo, valoracion: "todas", texto: query });
+    return new Map(
+      VALORACIONES.map((v) => [v.value, base.filter((b) => cumpleValoracion(b, v.value)).length]),
+    );
+  }, [shown, anioActivo, query]);
 
   const q = query.trim();
   const corta = q.length < 3;
@@ -156,17 +194,21 @@ export function Library({ books }: { books: Book[] }) {
   const { container, start } = useReorder({
     onStart: setArrastrando,
     onEnd: (ids) => {
+      // Con un filtro puesto se arrastró entre los visibles: el orden que se
+      // guarda es el de la biblioteca entera, con los ocultos en su lugar.
+      const completo = ids && reordenarSubconjunto(ordenados.map((b) => b.id), ids);
       // Sincrónico: el hook limpia los desplazamientos apenas vuelve, y para
       // entonces el DOM ya tiene que estar en el orden nuevo.
       flushSync(() => {
         setArrastrando(null);
-        if (ids) {
+        if (completo) {
           const porId = new Map(ordenados.map((b) => [b.id, b]));
-          setOrdenLocal(ids.flatMap((id) => porId.get(id) ?? []));
+          setOrdenLocal(completo.flatMap((id) => porId.get(id) ?? []));
         }
       });
-      // Se guarda el orden que quedó a la vista.
-      if (ids) void reorderBooks(ids);
+      if (completo) {
+        void reorderBooks(completo).then((res) => res?.error && setError(res.error));
+      }
     },
   });
 
@@ -174,6 +216,7 @@ export function Library({ books }: { books: Book[] }) {
     shown.some((b) => norm(b.title) === norm(titulo));
 
   const buscandoAlgo = q.length > 0;
+  const manual = orden === "manual";
 
   return (
     <div className="flex flex-col gap-4">
@@ -188,8 +231,8 @@ export function Library({ books }: { books: Book[] }) {
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar un libro para agregar"
-          aria-label="Buscar un libro para agregar"
+          placeholder="Buscar en tu biblioteca o agregar"
+          aria-label="Buscar en tu biblioteca o agregar un libro"
           autoComplete="off"
           maxLength={300}
           className="text-body placeholder:text-ink-faint min-w-0 flex-1 bg-transparent focus:outline-none"
@@ -252,24 +295,113 @@ export function Library({ books }: { books: Book[] }) {
           description="Buscá arriba el primer libro que quieras anotar. Te traigo el autor, el año y la portada."
         />
       ) : (
-        <ListGroup footer="Mantené apretado para reordenar. Deslizá para editar o borrar.">
-          <div ref={container}>
-            <PresenceList items={ordenados} getKey={(book) => book.id}>
-              {(book, { last }) => (
-                <Ficha
-                  book={book}
-                  last={last}
-                  arrastrando={arrastrando === book.id}
-                  onPresion={(y) => start(book.id, y)}
-                  onEdit={() => setEditando(book)}
-                  onDelete={() =>
-                    run({ type: "delete", id: book.id }, () => deleteBook(book.id))
-                  }
-                />
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <SelectPill
+              label="Ordenar"
+              display={ORDENES.find((o) => o.value === orden)!.label}
+              value={orden}
+              options={ORDENES}
+              onChange={setOrden}
+            />
+            {/* Sin años cargados el filtro tendría una sola opción. */}
+            {anios.length > 0 && (
+              <SelectPill
+                label="Año de lectura"
+                display={anioActivo === null ? "Año" : String(anioActivo)}
+                value={anioActivo === null ? "todos" : String(anioActivo)}
+                options={[
+                  { value: "todos", label: "Todos los años" },
+                  ...anios.map((a) => ({
+                    value: String(a),
+                    label: `${a} · ${porAnio.get(a) ?? 0}`,
+                  })),
+                ]}
+                onChange={(v) => setAnio(v === "todos" ? null : Number(v))}
+                active={anioActivo !== null}
+              />
+            )}
+            <SelectPill
+              label="Valoración"
+              display={
+                valoracion === "todas"
+                  ? "Valoración"
+                  : VALORACIONES.find((v) => v.value === valoracion)!.label
+              }
+              value={valoracion}
+              options={VALORACIONES.map((v) =>
+                v.value === "todas"
+                  ? v
+                  : { ...v, label: `${v.label} · ${porValoracion.get(v.value) ?? 0}` },
               )}
-            </PresenceList>
+              onChange={setValoracion}
+              active={valoracion !== "todas"}
+            />
           </div>
-        </ListGroup>
+
+          {/* En su propia línea y no al lado de las píldoras: ahí en el
+              teléfono no entraba y quedaba solo en una segunda fila. */}
+          <p className="eyebrow pt-1" aria-live="polite">
+            {hayFiltros || buscandoAlgo
+              ? `${visibles.length} de ${shown.length} libros`
+              : `${shown.length} ${shown.length === 1 ? "libro" : "libros"}`}
+          </p>
+
+          <PresenceGrid
+            ref={container}
+            items={visibles}
+            getKey={(book) => book.id}
+            className="grid-cols-2 items-start gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4"
+          >
+            {(book) => (
+              <BookCard
+                book={book}
+                arrastrable={manual}
+                arrastrando={arrastrando === book.id}
+                onPresion={(punto) => start(book.id, punto)}
+                onOpen={() => setEditando(book)}
+              />
+            )}
+          </PresenceGrid>
+
+          <Reveal
+            when={
+              visibles.length === 0
+                ? hayFiltros
+                  ? { texto: "Ningún libro coincide con los filtros.", filtros: true }
+                  : { texto: `No tenés ningún libro que coincida con “${q}”.`, filtros: false }
+                : null
+            }
+          >
+            {(vacio) => (
+              <div className="bg-sand flex flex-col items-center gap-3 rounded-lg px-6 py-10 text-center">
+                <p className="text-subhead text-ink-soft text-balance">{vacio.texto}</p>
+                {vacio.filtros && (
+                  <Button
+                    size="sm"
+                    variant="soft"
+                    onClick={() => {
+                      setAnio(null);
+                      setValoracion("todas");
+                    }}
+                  >
+                    Quitar filtros
+                  </Button>
+                )}
+              </div>
+            )}
+          </Reveal>
+
+          <Reveal when={visibles.length > 0 ? (manual ? "manual" : "otro") : null}>
+            {(modo) => (
+              <p className="text-footnote text-ink-faint pt-2 text-center text-balance">
+                {modo === "manual"
+                  ? "Tocá un libro para editarlo. Mantené apretado para moverlo."
+                  : "Tocá un libro para editarlo. Para moverlos a mano, ordená por Mi orden."}
+              </p>
+            )}
+          </Reveal>
+        </>
       )}
 
       <BookEditor
@@ -283,119 +415,14 @@ export function Library({ books }: { books: Book[] }) {
             updateBook(libro.id, draft),
           );
         }}
+        onDelete={() => {
+          const libro = editando;
+          if (!libro) return;
+          setError(null);
+          setEditando(null);
+          run({ type: "delete", id: libro.id }, () => deleteBook(libro.id));
+        }}
       />
-    </div>
-  );
-}
-
-/**
- * Fila de libro.
- *
- * Conviven dos gestos sobre la misma fila y se distinguen por intención:
- * moverse en horizontal enseguida es un swipe -editar o borrar-, y mantener
- * apretado sin moverse arranca el arrastre para reordenar. Mientras se
- * reordena, el swipe queda apagado para que no peleen por el mismo dedo.
- */
-function Ficha({
-  book,
-  last,
-  arrastrando,
-  onPresion,
-  onEdit,
-  onDelete,
-}: {
-  book: Book;
-  last: boolean;
-  arrastrando: boolean;
-  /** Se sostuvo el dedo sin moverse: arranca el arrastre desde esa altura. */
-  onPresion: (clientY: number) => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const esAudio = book.format === "audiolibro";
-  const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const inicio = useRef({ x: 0, y: 0 });
-
-  const cancelarPresion = () => {
-    if (temporizador.current) {
-      clearTimeout(temporizador.current);
-      temporizador.current = null;
-    }
-  };
-
-  return (
-    // El arrastre no lo dispara el primer movimiento: lo dispara la presión
-    // sostenida, para no robarle el gesto horizontal al swipe.
-    <div
-      onPointerDown={(e) => {
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        inicio.current = { x: e.clientX, y: e.clientY };
-        const y = e.clientY;
-        temporizador.current = setTimeout(() => {
-          temporizador.current = null;
-          onPresion(y);
-        }, PRESION_MS);
-      }}
-      onPointerMove={(e) => {
-        if (!temporizador.current) return;
-        // Si el dedo se fue antes de tiempo, era un swipe o un scroll.
-        if (
-          Math.abs(e.clientX - inicio.current.x) > SLOP_PX ||
-          Math.abs(e.clientY - inicio.current.y) > SLOP_PX
-        )
-          cancelarPresion();
-      }}
-      onPointerUp={cancelarPresion}
-      onPointerCancel={cancelarPresion}
-      // Mantener apretado en el teléfono abre el menú contextual del sistema.
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <SwipeRow
-        disabled={arrastrando}
-        actions={[
-          { label: "Editar", icon: PencilSimpleIcon, onSelect: onEdit },
-          {
-            label: "Borrar",
-            icon: TrashIcon,
-            tone: "destructive",
-            onSelect: onDelete,
-          },
-        ]}
-      >
-        <article
-          className={cn(
-            "bg-card flex gap-3 px-4 py-3",
-            !last && !arrastrando && "hairline-b",
-            "[--hairline-inset:4.25rem]",
-            "transition-colors duration-200",
-            arrastrando && "bg-sand cursor-grabbing select-none",
-          )}
-        >
-          <Portada url={book.cover_url} titulo={book.title} ancho={44} />
-
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <div className="min-w-0">
-              <h3 className="text-body line-clamp-1 font-semibold">{book.title}</h3>
-              <p className="text-micro text-ink-faint truncate">
-                {[book.author, book.year, book.read_year ? `leído en ${book.read_year}` : null]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-              <Tag variant={book.status === "leyendo" ? "accent" : "wash"}>
-                {ETIQUETA[book.status]}
-              </Tag>
-              <Tag variant="wash">{esAudio ? "Audio" : "Libro"}</Tag>
-
-              {book.rating !== null && (
-                <StarRating value={book.rating} readOnly size={14} className="ml-auto" />
-              )}
-            </div>
-          </div>
-        </article>
-      </SwipeRow>
     </div>
   );
 }
@@ -479,52 +506,5 @@ function Resultados({
         </>
       )}
     </div>
-  );
-}
-
-function Portada({
-  url,
-  titulo,
-  ancho,
-}: {
-  url: string | null;
-  titulo: string;
-  ancho: number;
-}) {
-  const alto = Math.round(ancho * 1.5);
-
-  if (!url) {
-    return (
-      // El hueco de la portada ocupa el lugar exacto de una tapa, así que es
-      // rectangular y no va adentro de un IconChip. Lleva el acento igual: el
-      // libro pertenece al módulo aunque falte la foto.
-      <div
-        className="bg-accent-chip text-accent grid shrink-0 place-items-center rounded-xs"
-        style={{ width: ancho, height: alto }}
-        aria-hidden
-      >
-        <BookOpenIcon size={Math.round(ancho / 2.4)} />
-      </div>
-    );
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element -- ver comentario abajo
-    <img
-      src={url}
-      alt={`Portada de ${titulo}`}
-      loading="lazy"
-      // La URL de la portada la puede pegar cualquiera y apunta a donde sea.
-      // Sin esto, ese host se entera de qué pantalla de hubby la pidió.
-      referrerPolicy="no-referrer"
-      width={ancho}
-      height={alto}
-      // <img> y no next/image: ya iba unoptimized, así que no había nada que
-      // optimizar, y next/image solo permite dominios declarados de antemano.
-      // Ahora la portada puede venir de donde sea, incluida una URL pegada a
-      // mano en el editor.
-      className="bg-accent-wash shrink-0 rounded-xs object-cover"
-      style={{ width: ancho, height: alto }}
-    />
   );
 }

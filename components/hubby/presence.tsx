@@ -20,9 +20,10 @@ import { useState } from "react";
  * llega igual y la fila se desmonta.
  */
 
-type Entry<T> = { key: string; item: T; leaving: boolean; entering: boolean };
+export type Entry<T> = { key: string; item: T; leaving: boolean; entering: boolean };
 
-function merge<T>(
+/** También la usa PresenceGrid: las grillas entran y salen con las mismas reglas. */
+export function merge<T>(
   prev: Entry<T>[],
   next: readonly T[],
   getKey: (item: T) => string,
