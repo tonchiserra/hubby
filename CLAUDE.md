@@ -175,7 +175,10 @@ Clases con `cn()` de `lib/utils.ts`, no `twMerge` pelado: la escala tipográfica
   `experimental.viewTransition` en `next.config.ts` (tipos en `types/react-canary.d.ts`), como
   Platita. Reemplaza al `startViewTransition` a mano, que solo animaba las tarjetas del panel. La
   `<ViewTransition>` tiene que estar en el layout, que persiste: adentro de una página se remonta y
-  no anima. El título compartido de cada módulo (`moduleTitleTransition`) tiene que ser único en la
+  no anima. **Anima solo las transiciones de tipo `navegar`** (`NAVEGAR` en
+  `lib/transition-names.ts`), así que todo `<Link>` que cambia de pantalla lleva
+  `transitionTypes={NAVEGAR}`. Con `default="page"` a secas también se disparaba en cada
+  revalidación de una Server Action: marcar un producto hacía salir y entrar la pantalla entera. El título compartido de cada módulo (`moduleTitleTransition`) tiene que ser único en la
   pantalla.
 - `useOptimistic` actualiza en el carril síncrono, y las `<ViewTransition>` de React solo se
   activan con transiciones. Por eso las filas no animan con React: animan con `PresenceList`.

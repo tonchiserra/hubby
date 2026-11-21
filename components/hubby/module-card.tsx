@@ -3,7 +3,7 @@ import type { Icon } from "@/components/ui/icons";
 import { ArrowUpRightIcon } from "@/components/ui/icons";
 import { IconChip } from "@/components/ui/icon-chip";
 import { cn } from "@/lib/utils";
-import { moduleTitleTransition } from "@/lib/transition-names";
+import { NAVEGAR, moduleTitleTransition } from "@/lib/transition-names";
 
 /**
  * Tarjeta de módulo del menú principal.
@@ -41,6 +41,7 @@ export function ModuleCard({
   return (
     <Link
       href={href}
+      transitionTypes={NAVEGAR}
       className={cn(
         "group bg-card text-ink flex min-h-touch flex-col gap-4 rounded-lg border p-5",
         "transition-[transform,box-shadow,border-color] duration-300 ease-out",

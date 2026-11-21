@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { NAVEGAR } from "@/lib/transition-names";
 
 /**
  * Encabezado de pantalla. El título es el titular del kit: Mona Sans
@@ -28,6 +29,7 @@ export function PageHeader({
       {back && (
         <Link
           href={back.href}
+          transitionTypes={NAVEGAR}
           aria-label={back.label ?? "Volver al menú principal"}
           className={cn(
             "bg-sand text-ink-soft hover:text-ink group inline-flex h-8 w-fit items-center gap-1.5 rounded-full pr-3.5 pl-2.5",

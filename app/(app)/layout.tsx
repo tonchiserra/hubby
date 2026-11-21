@@ -24,8 +24,14 @@ export default function AppLayout({
     <main className="stagger mx-auto w-full max-w-4xl flex-1 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] md:py-12">
       {/* Cada navegación entre el panel y un módulo es una view transition: la
           página vieja se va hacia arriba y la nueva sube. El título de la
-          tarjeta se convierte en el del módulo (ver transition-names.ts). */}
-      <ViewTransition default="page">{children}</ViewTransition>
+          tarjeta se convierte en el del módulo (ver transition-names.ts).
+
+          Solo para las navegaciones, que llevan el tipo NAVEGAR. Con
+          default="page" a secas también animaba cada revalidación de una
+          Server Action, y marcar un producto movía la pantalla entera. */}
+      <ViewTransition default={{ navegar: "page", default: "none" }}>
+        {children}
+      </ViewTransition>
     </main>
   );
 }

@@ -10,6 +10,7 @@ import { MODULES } from "@/lib/modules/registry";
 import { MODULE_SUMMARIES } from "@/lib/modules/summaries";
 import { resumenAislado } from "@/lib/modules/safe-summary";
 import { partitionByUrgency, type ModulePanelEntry } from "@/lib/modules/summary";
+import { NAVEGAR } from "@/lib/transition-names";
 
 /**
  * Se esperan todos los resúmenes antes de pintar, en vez de transmitir cada
@@ -73,7 +74,7 @@ export default async function Dashboard() {
           </div>
 
           <ListGroup>
-            <Link href="/ajustes" className="group block">
+            <Link href="/ajustes" transitionTypes={NAVEGAR} className="group block">
               <ListRow
                 last
                 interactive

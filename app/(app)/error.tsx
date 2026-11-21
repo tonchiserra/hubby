@@ -5,6 +5,7 @@ import Link from "next/link";
 import { WarningIcon } from "@/components/ui/icons";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { Button } from "@/components/ui/button";
+import { NAVEGAR } from "@/lib/transition-names";
 
 /**
  * Red de contención de cualquier pantalla de módulo.
@@ -37,7 +38,9 @@ export default function ErrorDeModulo({
         <div className="flex items-center gap-2">
           <Button onClick={reset}>Reintentar</Button>
           <Button asChild variant="soft">
-            <Link href="/">Volver al menú</Link>
+            <Link href="/" transitionTypes={NAVEGAR}>
+              Volver al menú
+            </Link>
           </Button>
         </div>
       }
