@@ -180,6 +180,12 @@ Clases con `cn()` de `lib/utils.ts`, no `twMerge` pelado: la escala tipográfica
   `transitionTypes={NAVEGAR}`. Con `default="page"` a secas también se disparaba en cada
   revalidación de una Server Action: marcar un producto hacía salir y entrar la pantalla entera. El título compartido de cada módulo (`moduleTitleTransition`) tiene que ser único en la
   pantalla.
+- **`experimental.appNewScrollHandler` no se saca.** Con el manejador de scroll de siempre, al
+  navegar Next busca el primer elemento del segmento nuevo y encuentra la metadata que React subió
+  al `<head>` (`<title>`, `<meta>`, `<script>`). La descarta por invisible y deja el scroll de la
+  navegación pendiente, y lo aplica la revalidación siguiente: marcar un producto después de entrar
+  desde el panel mandaba la pantalla arriba de todo. El código de Next remite a esta opción para
+  este caso.
 - `useOptimistic` actualiza en el carril síncrono, y las `<ViewTransition>` de React solo se
   activan con transiciones. Por eso las filas no animan con React: animan con `PresenceList`.
 - `app/(app)/layout.tsx` lleva `export const dynamic = "force-dynamic"`: todo lo que

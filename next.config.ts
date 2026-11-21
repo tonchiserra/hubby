@@ -51,6 +51,15 @@ const nextConfig: NextConfig = {
     // Reemplaza al startViewTransition a mano de la versión anterior, que
     // solo animaba las tarjetas del panel y tenía que adivinar cuándo soltar.
     viewTransition: true,
+    // El manejador de scroll de siempre busca el primer elemento del segmento
+    // nuevo, y al navegar encuentra la metadata que React subió al <head>
+    // (<title>, <meta>, <script>): la descarta por invisible y se rinde sin
+    // consumir el scroll pendiente. Ese scroll quedaba vivo y lo aplicaba la
+    // revalidación siguiente: marcar un producto después de entrar desde el
+    // panel te mandaba arriba de todo. El manejador nuevo usa un ref de
+    // Fragment y consume el scroll al navegar. El propio código de Next
+    // remite a esta opción para este caso (layout-router.js).
+    appNewScrollHandler: true,
   },
 
   turbopack: {
