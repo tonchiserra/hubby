@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { requireSupabaseEnv } from "./config";
 import type { Database } from "./types";
 
@@ -28,11 +29,22 @@ export async function createClient() {
   });
 }
 
-/** El usuario actual, o null. Verificado contra el servidor de Auth. */
-export async function getUser() {
+/**
+ * El usuario actual, o null, leído de los claims del JWT.
+ *
+ * `getClaims()` y no `getUser()`, como en Platita: el proyecto firma con
+ * ES256, así que los claims se verifican localmente contra el JWKS (que la
+ * librería cachea), en vez de ir y volver al servidor de Auth en cada
+ * render. El costo es el mismo punto ciego que ya tiene RLS: una sesión
+ * revocada antes de vencer sigue valiendo hasta su `exp`.
+ */
+export const getUser = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
+  return {
+    id: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : null,
+  };
+});
