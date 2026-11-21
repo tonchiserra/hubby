@@ -22,8 +22,8 @@ pantalla y se vuelve con el botón del encabezado.
 ### Qué hace que un módulo reclame atención
 
 Cada módulo aporta un `ModuleSummary` (`urgency`, `detail`, `preview`). Con
-`urgency > 0` la tarjeta se pinta con el acento y muestra el contador y hasta
-tres ítems concretos; con `urgency = 0` queda en papel. El orden del panel sale
+`urgency > 0` el chip de la tarjeta pasa a sólido y aparecen el contador y hasta
+tres ítems concretos; con `urgency = 0` el chip queda lavado. El orden del panel sale
 de ahí, con desempate alfabético para que no baile entre cargas.
 
 Qué cuenta como urgente lo decide cada módulo, y la regla no es "cuántas cosas
@@ -139,23 +139,29 @@ contra el esquema real: los alias del final (`GroceryItem`, `Book`, `Wish`,
 
 ## Sistema visual
 
-La regla, escrita completa arriba de `app/globals.css`:
+Desde 2026-11 hubby usa el UI Kit de COSRX AR, como Platita: UI clara, tarjetas
+blancas con borde, bloques en el gris producto del kit, píldoras para lo que se
+toca y el negro solo para el texto. Titulares en Mona Sans expandida, texto en
+Hanken Grotesk y números importantes en bold. El porqué está en
+`docs/plans/2026-11-21-rediseno-cosrx-design.md`.
+
+La regla de color sigue siendo la de agosto, escrita arriba de `app/globals.css`:
 
 > El color no marca urgencia: marca pertenencia.
 
-El acento va en los detalles —íconos, marcas, focos— y nunca en el fondo de la
-pantalla. Lo que reclama atención se distingue por relleno: **sólido reclama,
-lavado pertenece**. El terracota es solo para lo destructivo; que falte leche no
-es un error, es el tema de la app.
+El acento va en los detalles —íconos, marcas, focos, el contador— y nunca de
+fondo. Lo que reclama atención se distingue por relleno: **sólido reclama,
+lavado pertenece**. El rojo es solo para lo destructivo; que falte leche no es
+un error, es el tema de la app.
 
 Otras dos reglas que el código da por sentadas:
 
 - **Todo ícono va adentro de un `IconChip`.** Las excepciones son deliberadas y
   están enumeradas con su motivo en `lib/design/icon-usage.test.ts`. Si agregás
   un ícono suelto, el test falla hasta que lo envolvés o lo justificás ahí.
-- **Todo cambio de estado se anima**, y los tiempos salen de `lib/motion.ts`:
-  resortes, no curvas de duración fija, para que el movimiento absorba
-  interrupciones en vez de saltar.
+- **Todo cambio de estado se anima**, sin librería: las filas entran y salen con
+  `PresenceList`, los bloques con `Reveal`, las páginas con el `<ViewTransition>`
+  de React, y las curvas salen de los tokens de `app/globals.css`.
 
 ## Tests
 
@@ -166,8 +172,10 @@ módulo al panel, cómo se ordena, cómo se degrada un resumen caído, y el uso 
 
 ## Deploy en Vercel
 
-Vercel detecta Next.js solo: no hace falta `vercel.json` ni tocar los comandos
-de build. Lo único obligatorio son las dos variables de entorno.
+Vercel detecta Next.js solo: no hace falta tocar los comandos de build. Lo
+único obligatorio son las dos variables de entorno. `vercel.json` solo fija las
+funciones en São Paulo (`gru1`), al lado de la base: base y funciones tienen que
+quedar en la misma región, o cada consulta paga el viaje entre las dos.
 
 ### 1. Importar el repo
 

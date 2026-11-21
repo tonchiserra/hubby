@@ -16,7 +16,7 @@ El proyecto usa **pnpm**. Nunca `npm install`.
 | `pnpm build`    | Build de producción                                          |
 | `pnpm test`     | Vitest, una sola corrida                                     |
 | `pnpm lint`     | ESLint                                                       |
-| `pnpm db:link`  | Asocia el repo al proyecto Supabase (una sola vez)           |
+| `pnpm db:link`  | Asocia el repo al proyecto Supabase (una sola vez): `Hubby SP` |
 | `pnpm db:push`  | Aplica las migraciones de `supabase/migrations/`             |
 | `pnpm db:types` | Vuelca el esquema real en `lib/supabase/types.generated.ts`  |
 
@@ -90,6 +90,18 @@ la tarjeta en "No se pudo cargar".
   pantalla, trigger `set_updated_at`, e índice único sobre `lower(trim(nombre))` donde no
   se quieran repetidos.
 
+### Infraestructura
+
+Desde 2026-11-21 la base vive en **São Paulo** (`Hubby SP`, ref `kiidscaeqefurjnlesbf`,
+`sa-east-1`) y las funciones de Vercel están fijadas al lado con `vercel.json`
+(`regions: ["gru1"]`). Antes estaban en Montreal y Virginia, y cada consulta desde Argentina
+tardaba ~220ms; ahora ~60ms. El proyecto viejo (`qbpntzkijavryptbxxwd`, `ca-central-1`) quedó
+pausado como respaldo. La base y las funciones tienen que quedar en la misma región.
+
+El servidor lee la sesión con `getClaims()` (`lib/supabase/server.ts` y `proxy.ts`), nunca con
+`getUser()`: el proyecto firma con ES256 y los claims se verifican localmente, sin ir al servidor
+de Auth.
+
 ### Trabajo diferido (tareas)
 
 El reinicio de las listas no lo corre ningún proceso de fondo: se calcula al leer, en
@@ -101,22 +113,46 @@ calendario, no instantes) y en la zona `America/Argentina/Buenos_Aires`.
 
 ## Sistema visual
 
-La regla, escrita completa arriba de `app/globals.css`: **el color no marca urgencia,
-marca pertenencia.** El acento va en los detalles (íconos, marcas, focos) y nunca en el
-fondo de la pantalla. Lo que reclama atención se distingue por relleno: sólido reclama,
-lavado pertenece. El terracota es solo para lo destructivo. Hay un solo acento para toda
-la app, no uno por módulo.
+Desde 2026-11 hubby usa el **UI Kit de COSRX AR** (Innovate, `~/Desktop/Innovate/cosrx-theme`), igual
+que Platita: ver `docs/plans/2026-11-21-rediseno-cosrx-design.md`. Antes de tocar el look, leer
+también `docs/plans/2026-08-01-ui-color-pertenencia-design.md`: hay tres rediseños rechazados y la
+regla de color sigue vigente.
 
-Antes de tocar el look, leer `docs/plans/2026-08-01-ui-color-pertenencia-design.md`: hay
-tres rediseños rechazados y el diagnóstico de por qué ajustar tokens nunca alcanzó.
+- **La regla:** el color no marca urgencia, marca pertenencia. El acento (salvia `#4a7a5b`, el lugar
+  que el kit le da al amarillo) va en los detalles: íconos, marcas, focos, el contador. Lo que
+  reclama atención se distingue por relleno, sólido contra lavado. Hay un solo acento para toda la
+  app.
+- **UI clara, sin bloques negros ni de color.** Fondo blanco, bloques en gris producto (`--sand`),
+  tarjetas blancas con borde de 10px. El negro del kit es solo para texto. El rojo del kit es solo
+  para lo destructivo.
+- **Forma:** píldoras para lo que se toca (botones, buscadores, segmentados, chips); etiquetas de
+  4px.
+- **Tipografía:** Hanken Grotesk (texto) y Mona Sans (`display-tight` para titulares expandidos,
+  `cifra` para números importantes en bold). Son reemplazos libres: Maison Neue y Piek son licencia
+  del cliente y no se usan.
+- **Rótulos:** `eyebrow` (versalitas con el punto del acento). Nunca el formato `[/ … /]`.
+- **Formularios:** el campo del kit es `field` (subrayado, la línea del acento crece al enfocar).
+  Se editan en una `Sheet` (`components/ui/sheet.tsx`): `<dialog>` nativo, abajo en el teléfono y
+  modal desde 760px. Un campo con `data-autofocus` recibe el foco al abrir.
+- Los tokens están en `app/globals.css`, con los nombres semánticos de antes (`paper`, `card`,
+  `sand`, `ink`, `accent`, `danger`…). El oscuro redefine solo esa capa. No hardcodear colores.
 
 Dos reglas que el código da por sentadas:
 
-- **Todo ícono va adentro de un `IconChip`.** Las excepciones están enumeradas con su
-  motivo en `lib/design/icon-usage.test.ts`, indexadas por `ruta:NombreDelIcono`. Un
-  ícono suelto nuevo hace fallar el test hasta que se lo envuelve o se lo justifica ahí.
-- **Todo cambio de estado se anima**, con los presets de `lib/motion.ts` (resortes, no
-  duraciones fijas). No definir tiempos a mano.
+- **Todo ícono va adentro de un `IconChip`.** Las excepciones están enumeradas con su motivo en
+  `lib/design/icon-usage.test.ts`, indexadas por `ruta:NombreDelIcono`. Un ícono suelto nuevo hace
+  fallar el test hasta que se lo envuelve o se lo justifica ahí. Los íconos son SVG propios en
+  `components/ui/icons.tsx`, con los nombres que tenían en Phosphor.
+- **Todo cambio de estado se anima**, con CSS y las curvas de `app/globals.css`
+  (`--ease-out-kit`, `--ease-spring-kit`, `--t-*`). No hay librería de animación:
+  - Filas y bloques que entran y salen: `PresenceList` y `Reveal`
+    (`components/hubby/presence.tsx`). Un bloque suelto dentro de un `flex gap-*` declara ese gap
+    con `[--presence-gap:…]` para no dejar un salto al irse.
+  - Reordenar arrastrando: `useReorder` (`components/hubby/use-reorder.ts`).
+  - Páginas: `<ViewTransition default="page">` en `app/(app)/layout.tsx`. Lo que no es navegación
+    (el tema) pasa por `withViewTransition`.
+  - Con `prefers-reduced-motion` las animaciones duran 0,01ms en vez de desaparecer, para que
+    `animationend` siga llegando y las filas que salen se desmonten.
 
 Clases con `cn()` de `lib/utils.ts`, no `twMerge` pelado: la escala tipográfica del
 `@theme` está registrada ahí y sin eso tailwind-merge confunde `text-headline` con
@@ -135,10 +171,14 @@ Clases con `cn()` de `lib/utils.ts`, no `twMerge` pelado: la escala tipográfica
   propósito, están comentados en ambos archivos.
 - **`vitest.config.mts` aliasea `server-only` a `node_modules/server-only/empty.js`.** Sin
   eso, cualquier test que alcance un archivo de servidor revienta al importarlo.
-- Las view transitions usan la API nativa del navegador vía
-  `lib/view-transition.ts`, no el `ViewTransition` de React ni el flag experimental de
-  Next. El timing de 120ms está calibrado para soltar la transición cuando commitea
-  `loading.tsx`; esperar al árbol real congelaba la pantalla 1,5s.
+- Las transiciones de página usan el `<ViewTransition>` de React con
+  `experimental.viewTransition` en `next.config.ts` (tipos en `types/react-canary.d.ts`), como
+  Platita. Reemplaza al `startViewTransition` a mano, que solo animaba las tarjetas del panel. La
+  `<ViewTransition>` tiene que estar en el layout, que persiste: adentro de una página se remonta y
+  no anima. El título compartido de cada módulo (`moduleTitleTransition`) tiene que ser único en la
+  pantalla.
+- `useOptimistic` actualiza en el carril síncrono, y las `<ViewTransition>` de React solo se
+  activan con transiciones. Por eso las filas no animan con React: animan con `PresenceList`.
 - `app/(app)/layout.tsx` lleva `export const dynamic = "force-dynamic"`: todo lo que
   cuelga de ahí depende de la sesión y sin eso el build intenta prerenderizarlo y falla.
 
