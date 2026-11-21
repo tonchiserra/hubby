@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BasketIcon } from "@phosphor-icons/react/dist/ssr";
+import { BasketIcon } from "@/components/ui/icons";
 import { partitionByUrgency, type ModulePanelEntry } from "./summary";
 import type { ModuleDefinition } from "./types";
 

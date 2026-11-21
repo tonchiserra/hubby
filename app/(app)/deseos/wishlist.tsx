@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowSquareOutIcon,
   HeartIcon,
@@ -10,21 +9,15 @@ import {
   PlusCircleIcon,
   TrashIcon,
   XCircleIcon,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@/components/ui/icons";
 
 import { Tag } from "@/components/ui/tag";
 import { Segmented } from "@/components/ui/segmented";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
+import { PresenceList, Reveal } from "@/components/hubby/presence";
 import { cn } from "@/lib/utils";
-import {
-  blockVariants,
-  easeQuick,
-  rowVariants,
-  springEnter,
-  springLayout,
-} from "@/lib/motion";
 import type { Wish, WishStatus } from "@/lib/supabase/types";
 import { WishEditor, type WishDraft } from "./wish-editor";
 import { addWish, deleteWish, updateWish } from "./actions";
@@ -147,13 +140,12 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
           e.preventDefault();
           void onAdd();
         }}
-        className="bg-sand flex h-touch items-center gap-2 rounded-lg px-3.5"
+        className={cn(
+          "bg-sand flex h-touch items-center gap-2 rounded-full px-4",
+          "transition-shadow duration-200 focus-within:shadow-[inset_0_0_0_1.5px_var(--accent)]",
+        )}
       >
-        <MagnifyingGlassIcon
-          size={18}
-          weight="bold"
-          className="text-accent shrink-0 opacity-70"
-        />
+        <MagnifyingGlassIcon size={19} className="text-accent shrink-0" />
         <input
           ref={inputRef}
           value={query}
@@ -172,7 +164,7 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
               inputRef.current?.focus();
             }}
             aria-label="Limpiar búsqueda"
-            className="text-ink-faint shrink-0"
+            className="text-ink-faint hover:text-ink-soft -mr-1 shrink-0 animate-[pop_0.25s_var(--ease-out-kit)_both] transition-colors"
           >
             <XCircleIcon size={20} weight="fill" />
           </button>
@@ -190,50 +182,33 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
         ]}
       />
 
-      <AnimatePresence initial={false}>
-        {error && (
-          <motion.p
-            key="error"
-            role="alert"
-            variants={blockVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springEnter}
-            className="text-footnote text-danger overflow-hidden px-4"
-          >
-            {error}
-          </motion.p>
+      <Reveal when={error} className="[--presence-gap:1rem]">
+        {(mensaje) => (
+          <p role="alert" className="text-footnote text-danger px-4">
+            {mensaje}
+          </p>
         )}
+      </Reveal>
 
-        {/* Solo se ofrece agregar si el nombre no existe: es la defensa
-            principal contra los repetidos. */}
-        {buscando && !exists && (
-          <motion.div
-            key="add"
-            variants={blockVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springEnter}
-            className="overflow-hidden"
-          >
-            <ListGroup>
-              <ListRow
-                last
-                asButton
-                onClick={() => void onAdd()}
-                leading={<PlusCircleIcon size={22} className="text-accent" />}
-                label={
-                  <span>
-                    Anotar <span className="font-semibold">{query.trim()}</span>
-                  </span>
-                }
-              />
-            </ListGroup>
-          </motion.div>
+      {/* Solo se ofrece agregar si el nombre no existe: es la defensa
+          principal contra los repetidos. */}
+      <Reveal when={buscando && !exists ? query.trim() : null} className="[--presence-gap:1rem]">
+        {(nombre) => (
+          <ListGroup>
+            <ListRow
+              last
+              asButton
+              onClick={() => void onAdd()}
+              leading={<PlusCircleIcon size={22} className="text-accent" />}
+              label={
+                <span>
+                  Anotar <span className="font-semibold">{nombre}</span>
+                </span>
+              }
+            />
+          </ListGroup>
         )}
-      </AnimatePresence>
+      </Reveal>
 
       {shown.length === 0 ? (
         <EmptyState
@@ -246,50 +221,37 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
           {/* La animación va acá afuera y no dentro de SwipeRow: ese componente
               maneja transform a mano durante el gesto y se pelearían por la
               misma propiedad. */}
-          <AnimatePresence initial={false}>
-            {visible.map((wish, i) => (
-              <motion.div
-                key={wish.id}
-                layout
-                variants={rowVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={springLayout}
-                className="overflow-hidden"
-              >
-                <Ficha
-                  wish={wish}
-                  last={i === visible.length - 1}
-                  onEdit={() => setEditando(wish)}
-                  onDelete={() =>
-                    run({ type: "delete", id: wish.id }, () => deleteWish(wish.id))
-                  }
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          <PresenceList items={visible} getKey={(wish) => wish.id}>
+            {(wish, { last }) => (
+              <Ficha
+                wish={wish}
+                last={last}
+                onEdit={() => setEditando(wish)}
+                onDelete={() =>
+                  run({ type: "delete", id: wish.id }, () => deleteWish(wish.id))
+                }
+              />
+            )}
+          </PresenceList>
         </ListGroup>
       )}
 
-      <AnimatePresence initial={false}>
-        {shown.length > 0 && visible.length === 0 && (
-          <motion.p
-            key="vacio"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={easeQuick}
-            className="text-subhead text-ink-soft px-4 py-8 text-center"
-          >
-            {buscando
+      <Reveal
+        when={
+          shown.length > 0 && visible.length === 0
+            ? buscando
               ? `Nada coincide con “${query.trim()}”.`
               : filter === "comprados"
                 ? "Todavía no compraste nada de la lista."
-                : "Ya compraste todo lo que querías."}
-          </motion.p>
+                : "Ya compraste todo lo que querías."
+            : null
+        }
+        className="[--presence-gap:1rem]"
+      >
+        {(texto) => (
+          <p className="text-subhead text-ink-soft px-4 py-8 text-center">{texto}</p>
         )}
-      </AnimatePresence>
+      </Reveal>
 
       <WishEditor
         wish={editando}
@@ -354,7 +316,8 @@ function Ficha({
                 // Lo comprado ya no es una decisión pendiente: se corre a un
                 // segundo plano en vez de irse de la lista, porque saber qué te
                 // compraste es la mitad de para qué sirve una lista de deseos.
-                comprado ? "text-ink-soft" : "text-ink font-medium",
+                "transition-colors duration-300",
+                comprado ? "text-ink-soft" : "text-ink font-semibold",
               )}
             >
               {wish.title}
@@ -375,8 +338,9 @@ function Ficha({
           {wish.price !== null && (
             <span
               className={cn(
-                "text-subhead tabular-nums",
-                comprado ? "text-ink-faint" : "text-ink-soft",
+                // El precio es la cifra de la fila: bold, como en Platita.
+                "cifra text-subhead",
+                comprado ? "text-ink-faint" : "text-ink",
               )}
             >
               {formatPrice(wish.price)}
@@ -392,9 +356,9 @@ function Ficha({
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Abrir dónde comprar ${wish.title}`}
-              className="text-accent hover:bg-card-sunken grid size-9 place-items-center rounded-full transition-colors"
+              className="text-accent hover:bg-accent-wash grid size-10 place-items-center rounded-full transition-colors duration-200"
             >
-              <ArrowSquareOutIcon size={17} weight="bold" />
+              <ArrowSquareOutIcon size={19} />
             </a>
           )}
         </div>

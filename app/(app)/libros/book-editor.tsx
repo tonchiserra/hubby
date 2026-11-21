@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog } from "radix-ui";
-import { BookOpenIcon } from "@phosphor-icons/react/dist/ssr";
+import { BookOpenIcon } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
+import { Field, Sheet, SheetActions } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/segmented";
 import { StarRating } from "@/components/ui/star-rating";
-import { cn } from "@/lib/utils";
 import type { Book, BookFormat, BookStatus } from "@/lib/supabase/types";
 
 export type BookDraft = {
@@ -32,33 +32,27 @@ export function BookEditor({
   onOpenChange: (open: boolean) => void;
   onSave: (draft: BookDraft) => void;
 }) {
+  // La hoja se queda con el último libro mientras se cierra: así se va con el
+  // formulario puesto en vez de vaciarse antes de terminar de bajar.
+  const [ultimo, setUltimo] = useState(book);
+  if (book && book !== ultimo) setUltimo(book);
+
   return (
-    <Dialog.Root open={book !== null} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/25 backdrop-blur-[2px]" />
-        <Dialog.Content
-          className={cn(
-            "fixed top-1/2 left-1/2 z-50 w-[min(22rem,calc(100vw-2rem))]",
-            "-translate-x-1/2 -translate-y-1/2",
-            "bg-card overflow-hidden rounded-lg shadow-float",
-          )}
-        >
-          {/* El formulario se remonta por libro, con `key`: así los campos
-              nacen ya sembrados en vez de sincronizarse con un efecto. */}
-          {book && (
-            <Formulario
-              key={book.id}
-              book={book}
-              onCancel={() => onOpenChange(false)}
-              onSave={(draft) => {
-                onSave(draft);
-                onOpenChange(false);
-              }}
-            />
-          )}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <Sheet open={book !== null} onOpenChange={onOpenChange} title="Editar libro">
+      {/* El formulario se remonta por libro, con `key`: así los campos nacen
+          ya sembrados en vez de sincronizarse con un efecto. */}
+      {ultimo && (
+        <Formulario
+          key={ultimo.id}
+          book={ultimo}
+          onCancel={() => onOpenChange(false)}
+          onSave={(draft) => {
+            onSave(draft);
+            onOpenChange(false);
+          }}
+        />
+      )}
+    </Sheet>
   );
 }
 
@@ -102,35 +96,31 @@ function Formulario({
         });
       }}
     >
-      <div className="flex flex-col gap-4 px-4 pt-4 pb-5">
-        <Dialog.Title className="text-headline text-center">
-          Editar libro
-        </Dialog.Title>
-
-        <Campo etiqueta="Título">
+      <div className="flex flex-col gap-5">
+        <Field label="Título" htmlFor="libro-titulo">
           <input
+            id="libro-titulo"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={300}
-            autoFocus
-            aria-label="Título"
-            className="bg-sand text-body text-ink h-10 w-full rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-accent/35"
+            data-autofocus
+            className="field"
           />
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Autor">
+        <Field label="Autor" htmlFor="libro-autor">
           <input
+            id="libro-autor"
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             maxLength={200}
             placeholder="Sin autor"
-            aria-label="Autor"
-            className="bg-sand text-body text-ink placeholder:text-ink-faint h-10 w-full rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-accent/35"
+            className="field"
           />
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Portada">
-          <div className="flex items-center gap-3">
+        <Field label="Portada" htmlFor="libro-portada">
+          <div className="flex items-end gap-3">
             {/* Vista previa en vivo: pegás la dirección y ves si es la correcta
                 antes de guardar. */}
             {portada && portadaValida ? (
@@ -143,34 +133,32 @@ function Formulario({
                 // Ídem la lista: el host de la portada no tiene por qué saber
                 // desde dónde se lo llamó.
                 referrerPolicy="no-referrer"
-                className="bg-sand h-[54px] w-9 shrink-0 rounded-sm object-cover"
+                className="bg-sand h-[54px] w-9 shrink-0 rounded-xs object-cover"
               />
             ) : (
               // El hueco de la portada ocupa el lugar exacto de una tapa, así
               // que es rectangular y no va adentro de un IconChip. Lleva el
               // acento igual: el libro pertenece al módulo aunque falte la foto.
-              <div className="bg-accent-chip grid h-[54px] w-9 shrink-0 place-items-center rounded-sm">
-                <BookOpenIcon size={14} className="text-accent" />
+              <div className="bg-accent-chip grid h-[54px] w-9 shrink-0 place-items-center rounded-xs">
+                <BookOpenIcon size={16} className="text-accent" />
               </div>
             )}
             <input
+              id="libro-portada"
               value={coverUrl}
               onChange={(e) => setCoverUrl(e.target.value)}
               placeholder="https://…"
               inputMode="url"
-              aria-label="Dirección de la portada"
-              className={cn(
-                "bg-sand text-footnote text-ink placeholder:text-ink-faint h-10 min-w-0 flex-1 rounded-md px-3",
-                "focus:outline-none focus:ring-2 focus:ring-accent/35",
-                !portadaValida && "ring-2 ring-danger",
-              )}
+              aria-invalid={!portadaValida || undefined}
+              className="field text-subhead min-w-0 flex-1"
             />
           </div>
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Estado">
+        <Field label="Estado">
           <Segmented
             name={`estado-${book.id}`}
+            label="Estado"
             value={status}
             onChange={setStatus}
             segments={[
@@ -179,11 +167,12 @@ function Formulario({
               { value: "leido", label: "Leído" },
             ]}
           />
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Formato">
+        <Field label="Formato">
           <Segmented
             name={`formato-${book.id}`}
+            label="Formato"
             value={format}
             onChange={setFormat}
             segments={[
@@ -191,76 +180,48 @@ function Formulario({
               { value: "audiolibro", label: "Audiolibro" },
             ]}
           />
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Valoración">
-          <div className="flex items-center gap-3">
-            <StarRating value={rating} onChange={setRating} size={22} />
+        <Field label="Valoración">
+          <div className="flex h-11 items-center gap-3">
+            <StarRating value={rating} onChange={setRating} size={24} />
             {rating !== null && (
               <button
                 type="button"
                 onClick={() => setRating(null)}
-                className="text-footnote text-ink-soft hover:text-ink"
+                className="text-footnote text-ink-soft hover:text-ink transition-colors"
               >
                 Quitar
               </button>
             )}
           </div>
-        </Campo>
+        </Field>
 
         {/* El año se puede cargar en cualquier estado: podés estar leyendo
             algo que empezaste el año pasado, o anotar cuándo leíste algo que
             todavía no marcaste como terminado. */}
-        <Campo etiqueta="Año">
-            <input
-              value={readYear}
-              onChange={(e) => setReadYear(e.target.value.replace(/\D/g, ""))}
-              inputMode="numeric"
-              maxLength={4}
-              placeholder={String(new Date().getFullYear())}
-              aria-label="Año de lectura"
-              className={cn(
-                "bg-sand text-body text-ink h-10 w-24 rounded-md px-3 tabular-nums",
-                "focus:outline-none focus:ring-2 focus:ring-accent/35",
-                !anioValido && "ring-2 ring-danger",
-              )}
-            />
-        </Campo>
+        <Field label="Año" htmlFor="libro-anio">
+          <input
+            id="libro-anio"
+            value={readYear}
+            onChange={(e) => setReadYear(e.target.value.replace(/\D/g, ""))}
+            inputMode="numeric"
+            maxLength={4}
+            placeholder={String(new Date().getFullYear())}
+            aria-invalid={!anioValido || undefined}
+            className="field cifra w-24"
+          />
+        </Field>
       </div>
 
-      <div className="border-line grid grid-cols-2 border-t">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-body text-ink-soft border-line h-12 border-r active:bg-card-sunken"
-        >
+      <SheetActions>
+        <Button type="button" variant="soft" onClick={onCancel}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!limpio || !anioValido || !portadaValida}
-          className="text-body text-accent h-12 font-semibold active:bg-card-sunken disabled:opacity-40"
-        >
+        </Button>
+        <Button type="submit" disabled={!limpio || !anioValido || !portadaValida}>
           Guardar
-        </button>
-      </div>
+        </Button>
+      </SheetActions>
     </form>
-  );
-}
-
-function Campo({
-  etiqueta,
-  children,
-}: {
-  etiqueta: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-micro text-ink-soft font-medium tracking-wide uppercase">
-        {etiqueta}
-      </span>
-      {children}
-    </label>
   );
 }

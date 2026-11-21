@@ -46,6 +46,13 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Transiciones de página con el <ViewTransition> de React, como Platita.
+    // Reemplaza al startViewTransition a mano de la versión anterior, que
+    // solo animaba las tarjetas del panel y tenía que adivinar cuándo soltar.
+    viewTransition: true,
+  },
+
   turbopack: {
     // Fijado a mano porque hay un package-lock.json vacío en el home del
     // usuario y, sin esto, Next infiere /Users/tonchi como raíz del workspace.

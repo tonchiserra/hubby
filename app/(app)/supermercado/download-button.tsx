@@ -1,6 +1,6 @@
 "use client";
 
-import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/ssr";
+import { DownloadSimpleIcon } from "@/components/ui/icons";
 
 import { Button } from "@/components/ui/button";
 import { downloadMissing } from "./download";

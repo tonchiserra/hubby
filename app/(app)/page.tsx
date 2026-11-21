@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GearIcon, SquaresFourIcon } from "@phosphor-icons/react/dist/ssr";
+import { GearIcon, SquaresFourIcon } from "@/components/ui/icons";
 
 import { PageHeader } from "@/components/hubby/page-header";
 import { ModuleCard } from "@/components/hubby/module-card";
@@ -73,7 +73,7 @@ export default async function Dashboard() {
           </div>
 
           <ListGroup>
-            <Link href="/ajustes" className="block">
+            <Link href="/ajustes" className="group block">
               <ListRow
                 last
                 interactive

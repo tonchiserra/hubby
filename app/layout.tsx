@@ -1,18 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans } from "next/font/google";
+import { Hanken_Grotesk, Mona_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 /**
- * Instrument Sans tiene ejes de peso y de ancho. Toda la jerarquía sale de esa
- * única familia: los títulos van condensados y con peso, el cuerpo en ancho
- * normal. No hace falta una segunda tipografía para dar carácter.
+ * Reemplazos libres de las fuentes con licencia del UI Kit de COSRX, los
+ * mismos que usa Platita: Hanken Grotesk por Maison Neue (texto) y Mona Sans
+ * por Maison Neue Extended (titulares expandidos y cifras en bold). Las del
+ * kit son licencia del cliente y no se usan acá.
  *
- * next/font la descarga en build time y la self-hostea: sin request a Google
- * en runtime y sin salto de layout.
+ * next/font las descarga en build time y las self-hostea: sin request a
+ * Google en runtime y sin salto de layout.
  */
-const instrument = Instrument_Sans({
-  variable: "--font-instrument",
+const texto = Hanken_Grotesk({
+  variable: "--font-hanken",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const display = Mona_Sans({
+  variable: "--font-mona",
   subsets: ["latin"],
   axes: ["wdth"],
   display: "swap",
@@ -35,7 +42,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // La app arranca en claro sin importar la preferencia del SO; a partir de
   // ahí ThemeColorSync lo actualiza según el tema elegido.
-  themeColor: "#f3f2ed",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -48,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${instrument.variable} h-full`}
+      className={`${texto.variable} ${display.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full">

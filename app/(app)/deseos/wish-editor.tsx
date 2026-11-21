@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog } from "radix-ui";
+import { Button } from "@/components/ui/button";
+import { Field, Sheet, SheetActions } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/segmented";
-import { cn } from "@/lib/utils";
 import type { Wish, WishStatus } from "@/lib/supabase/types";
 import { parsePrice, sanitizePriceInput } from "./money";
 
@@ -28,33 +28,27 @@ export function WishEditor({
   onOpenChange: (open: boolean) => void;
   onSave: (draft: WishDraft) => void;
 }) {
+  // La hoja se queda con el último deseo mientras se cierra: así se va con
+  // el formulario puesto en vez de vaciarse antes de terminar de bajar.
+  const [ultimo, setUltimo] = useState(wish);
+  if (wish && wish !== ultimo) setUltimo(wish);
+
   return (
-    <Dialog.Root open={wish !== null} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/25 backdrop-blur-[2px]" />
-        <Dialog.Content
-          className={cn(
-            "fixed top-1/2 left-1/2 z-50 w-[min(22rem,calc(100vw-2rem))]",
-            "-translate-x-1/2 -translate-y-1/2",
-            "bg-card overflow-hidden rounded-lg shadow-float",
-          )}
-        >
-          {/* El formulario se remonta por deseo, con `key`: así los campos
-              nacen ya sembrados en vez de sincronizarse con un efecto. */}
-          {wish && (
-            <Formulario
-              key={wish.id}
-              wish={wish}
-              onCancel={() => onOpenChange(false)}
-              onSave={(draft) => {
-                onSave(draft);
-                onOpenChange(false);
-              }}
-            />
-          )}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <Sheet open={wish !== null} onOpenChange={onOpenChange} title="Editar deseo">
+      {/* El formulario se remonta por deseo, con `key`: así los campos nacen
+          ya sembrados en vez de sincronizarse con un efecto. */}
+      {ultimo && (
+        <Formulario
+          key={ultimo.id}
+          wish={ultimo}
+          onCancel={() => onOpenChange(false)}
+          onSave={(draft) => {
+            onSave(draft);
+            onOpenChange(false);
+          }}
+        />
+      )}
+    </Sheet>
   );
 }
 
@@ -97,63 +91,54 @@ function Formulario({
         });
       }}
     >
-      <div className="flex flex-col gap-4 px-4 pt-4 pb-5">
-        <Dialog.Title className="text-headline text-center">
-          Editar deseo
-        </Dialog.Title>
-
-        <Campo etiqueta="Qué es">
+      <div className="flex flex-col gap-5">
+        <Field label="Qué es" htmlFor="deseo-titulo">
           <input
+            id="deseo-titulo"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={200}
-            autoFocus
-            aria-label="Qué es"
-            className="bg-sand text-body text-ink h-10 w-full rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-accent/35"
+            data-autofocus
+            className="field"
           />
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Precio">
+        <Field label="Precio" htmlFor="deseo-precio">
           <div className="flex items-center gap-2">
             <span className="text-body text-ink-soft" aria-hidden>
               $
             </span>
             <input
+              id="deseo-precio"
               value={price}
               // Se filtra en cada tecla: así el valor guardado nunca depende de
               // adivinar si un punto era separador de miles o de decimales.
               onChange={(e) => setPrice(sanitizePriceInput(e.target.value))}
               inputMode="decimal"
               placeholder="Sin precio"
-              aria-label="Precio"
-              className={cn(
-                "bg-sand text-body text-ink placeholder:text-ink-faint h-10 min-w-0 flex-1 rounded-md px-3 tabular-nums",
-                "focus:outline-none focus:ring-2 focus:ring-accent/35",
-                !precioValido && "ring-2 ring-danger",
-              )}
+              aria-invalid={!precioValido || undefined}
+              className="field cifra min-w-0 flex-1"
             />
           </div>
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Dónde comprarlo">
+        <Field label="Dónde comprarlo" htmlFor="deseo-link">
           <input
+            id="deseo-link"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://…"
             inputMode="url"
             maxLength={2000}
-            aria-label="Link de compra"
-            className={cn(
-              "bg-sand text-footnote text-ink placeholder:text-ink-faint h-10 w-full rounded-md px-3",
-              "focus:outline-none focus:ring-2 focus:ring-accent/35",
-              !linkValido && "ring-2 ring-danger",
-            )}
+            aria-invalid={!linkValido || undefined}
+            className="field text-subhead"
           />
-        </Campo>
+        </Field>
 
-        <Campo etiqueta="Estado">
+        <Field label="Estado">
           <Segmented
             name={`estado-${wish.id}`}
+            label="Estado"
             value={status}
             onChange={setStatus}
             segments={[
@@ -162,42 +147,17 @@ function Formulario({
               { value: "comprado", label: "Comprado" },
             ]}
           />
-        </Campo>
+        </Field>
       </div>
 
-      <div className="border-line grid grid-cols-2 border-t">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-body text-ink-soft border-line h-12 border-r active:bg-card-sunken"
-        >
+      <SheetActions>
+        <Button type="button" variant="soft" onClick={onCancel}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!puedeGuardar}
-          className="text-body text-accent h-12 font-semibold active:bg-card-sunken disabled:opacity-40"
-        >
+        </Button>
+        <Button type="submit" disabled={!puedeGuardar}>
           Guardar
-        </button>
-      </div>
+        </Button>
+      </SheetActions>
     </form>
-  );
-}
-
-function Campo({
-  etiqueta,
-  children,
-}: {
-  etiqueta: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-micro text-ink-soft font-medium tracking-wide uppercase">
-        {etiqueta}
-      </span>
-      {children}
-    </label>
   );
 }

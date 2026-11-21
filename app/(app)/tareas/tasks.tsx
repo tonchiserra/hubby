@@ -1,7 +1,6 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import {
   ListChecksIcon,
   PencilSimpleIcon,
@@ -9,7 +8,7 @@ import {
   PlusIcon,
   SlidersHorizontalIcon,
   TrashIcon,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@/components/ui/icons";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,8 +16,8 @@ import { PromptDialog } from "@/components/ui/prompt-dialog";
 import { ListGroup, ListRow } from "@/components/hubby/list";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
+import { PresenceList, Reveal } from "@/components/hubby/presence";
 import { cn } from "@/lib/utils";
-import { blockVariants, rowVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Task } from "@/lib/supabase/types";
 import {
   addList,
@@ -84,22 +83,13 @@ export function Tasks({ lists }: { lists: ListWithTasks[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <AnimatePresence initial={false}>
-        {error && (
-          <motion.p
-            key="error"
-            role="alert"
-            variants={blockVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springEnter}
-            className="text-footnote text-danger overflow-hidden px-4"
-          >
-            {error}
-          </motion.p>
+      <Reveal when={error} className="[--presence-gap:1.5rem]">
+        {(mensaje) => (
+          <p role="alert" className="text-footnote text-danger px-4">
+            {mensaje}
+          </p>
         )}
-      </AnimatePresence>
+      </Reveal>
 
       {shown.length === 0 ? (
         <EmptyState
@@ -108,45 +98,39 @@ export function Tasks({ lists }: { lists: ListWithTasks[] }) {
           description="Armá una lista con lo que se repite -las cuentas del mes, la limpieza del finde- y elegí qué día vuelve todo a pendiente."
           action={
             <Button onClick={() => setCreandoLista(true)}>
-              <PlusIcon size={17} weight="bold" />
+              <PlusIcon size={18} />
               Crear lista
             </Button>
           }
         />
       ) : (
         <>
-          <AnimatePresence initial={false}>
-            {shown.map((lista) => (
-              <motion.div
-                key={lista.id}
-                layout
-                variants={blockVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={springEnter}
-              >
-                <Lista
-                  lista={lista}
-                  onConfig={() => setEditandoLista(lista)}
-                  onAddTask={() => setAgregandoEn(lista)}
-                  onToggle={(t) =>
-                    run({ type: "done", id: t.id, done: !t.done }, () =>
-                      setTaskDone(t.id, !t.done),
-                    )
-                  }
-                  onEditTask={setRenombrando}
-                  onDeleteTask={(t) =>
-                    run({ type: "delete", id: t.id }, () => deleteTask(t.id))
-                  }
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          <PresenceList
+            items={shown}
+            getKey={(lista) => lista.id}
+            className="[--presence-gap:1.5rem]"
+          >
+            {(lista) => (
+              <Lista
+                lista={lista}
+                onConfig={() => setEditandoLista(lista)}
+                onAddTask={() => setAgregandoEn(lista)}
+                onToggle={(t) =>
+                  run({ type: "done", id: t.id, done: !t.done }, () =>
+                    setTaskDone(t.id, !t.done),
+                  )
+                }
+                onEditTask={setRenombrando}
+                onDeleteTask={(t) =>
+                  run({ type: "delete", id: t.id }, () => deleteTask(t.id))
+                }
+              />
+            )}
+          </PresenceList>
 
           <div className="flex justify-center pt-1">
             <Button variant="soft" onClick={() => setCreandoLista(true)}>
-              <PlusIcon size={17} weight="bold" />
+              <PlusIcon size={18} />
               Nueva lista
             </Button>
           </div>
@@ -235,7 +219,10 @@ function Lista({
           {/* El número solo aparece si hay algo pendiente: "0" ocupa lugar para
               decir lo mismo que no mostrar nada. */}
           {pendientes > 0 && (
-            <span className="text-caption text-ink-soft tabular-nums">
+            <span
+              key={pendientes}
+              className="cifra text-caption text-accent bg-accent-wash grid h-6 min-w-6 place-items-center rounded-full px-1.5 animate-[pop_0.3s_var(--ease-spring-kit)_both]"
+            >
               {pendientes}
             </span>
           )}
@@ -243,35 +230,24 @@ function Lista({
             type="button"
             onClick={onConfig}
             aria-label={`Configurar ${lista.name}`}
-            className="text-ink-faint hover:text-ink transition-colors"
+            className="text-ink-soft hover:text-ink hover:bg-sand -mr-1.5 grid size-8 place-items-center rounded-full transition-colors"
           >
-            <SlidersHorizontalIcon size={17} weight="bold" />
+            <SlidersHorizontalIcon size={18} />
           </button>
         </div>
       }
       footer={describirRegla(lista)}
     >
-      <AnimatePresence initial={false}>
-        {lista.tasks.map((tarea) => (
-          <motion.div
-            key={tarea.id}
-            layout
-            variants={rowVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springLayout}
-            className="overflow-hidden"
-          >
-            <TaskRow
-              tarea={tarea}
-              onToggle={() => onToggle(tarea)}
-              onEdit={() => onEditTask(tarea)}
-              onDelete={() => onDeleteTask(tarea)}
-            />
-          </motion.div>
-        ))}
-      </AnimatePresence>
+      <PresenceList items={lista.tasks} getKey={(tarea) => tarea.id}>
+        {(tarea) => (
+          <TaskRow
+            tarea={tarea}
+            onToggle={() => onToggle(tarea)}
+            onEdit={() => onEditTask(tarea)}
+            onDelete={() => onDeleteTask(tarea)}
+          />
+        )}
+      </PresenceList>
 
       <ListRow
         last
@@ -332,9 +308,12 @@ function TaskRow({
               // Tachado, que en una lista de tareas es la convención y se lee
               // sin pensar. En Supermercado no se usa porque ahí marcar no
               // significa terminar algo, sino tenerlo en casa.
+              // La línea está siempre y lo que cambia es su color: así el
+              // tachado aparece con una transición en vez de saltar.
+              "line-through transition-[color,text-decoration-color] duration-300",
               tarea.done
-                ? "text-ink-soft decoration-ink-faint line-through"
-                : "text-ink font-medium",
+                ? "text-ink-soft decoration-ink-faint"
+                : "text-ink decoration-transparent font-medium",
             )}
           >
             {tarea.title}

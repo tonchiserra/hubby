@@ -3,7 +3,7 @@ import {
   BookOpenIcon,
   HeartIcon,
   ListChecksIcon,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@/components/ui/icons";
 import type { ModuleDefinition } from "./types";
 
 /**

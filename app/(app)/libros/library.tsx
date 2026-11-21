@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
-import { AnimatePresence, Reorder, motion, useDragControls } from "motion/react";
+import { flushSync } from "react-dom";
 import {
   BookOpenIcon,
   MagnifyingGlassIcon,
@@ -9,7 +9,7 @@ import {
   PlusIcon,
   TrashIcon,
   XCircleIcon,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@/components/ui/icons";
 
 import { StarRating } from "@/components/ui/star-rating";
 import { Tag } from "@/components/ui/tag";
@@ -17,8 +17,9 @@ import { BookEditor, type BookDraft } from "./book-editor";
 import { SwipeRow } from "@/components/hubby/swipe-row";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { ListGroup } from "@/components/hubby/list";
+import { PresenceList, Reveal } from "@/components/hubby/presence";
+import { useReorder } from "@/components/hubby/use-reorder";
 import { cn } from "@/lib/utils";
-import { blockVariants, springEnter, springLayout } from "@/lib/motion";
 import type { Book, BookStatus } from "@/lib/supabase/types";
 import { addBook, deleteBook, reorderBooks, updateBook } from "./actions";
 import { searchBooks, type BookResult } from "./open-library";
@@ -152,6 +153,23 @@ export function Library({ books }: { books: Book[] }) {
     if (res?.error) setError(res.error);
   }
 
+  const { container, start } = useReorder({
+    onStart: setArrastrando,
+    onEnd: (ids) => {
+      // Sincrónico: el hook limpia los desplazamientos apenas vuelve, y para
+      // entonces el DOM ya tiene que estar en el orden nuevo.
+      flushSync(() => {
+        setArrastrando(null);
+        if (ids) {
+          const porId = new Map(ordenados.map((b) => [b.id, b]));
+          setOrdenLocal(ids.flatMap((id) => porId.get(id) ?? []));
+        }
+      });
+      // Se guarda el orden que quedó a la vista.
+      if (ids) void reorderBooks(ids);
+    },
+  });
+
   const yaEsta = (titulo: string) =>
     shown.some((b) => norm(b.title) === norm(titulo));
 
@@ -159,12 +177,13 @@ export function Library({ books }: { books: Book[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-sand flex h-touch items-center gap-2 rounded-lg px-3.5">
-        <MagnifyingGlassIcon
-          size={18}
-          weight="bold"
-          className="text-accent shrink-0 opacity-70"
-        />
+      <div
+        className={cn(
+          "bg-sand flex h-touch items-center gap-2 rounded-full px-4",
+          "transition-shadow duration-200 focus-within:shadow-[inset_0_0_0_1.5px_var(--accent)]",
+        )}
+      >
+        <MagnifyingGlassIcon size={19} className="text-accent shrink-0" />
         <input
           ref={inputRef}
           value={query}
@@ -183,58 +202,48 @@ export function Library({ books }: { books: Book[] }) {
               inputRef.current?.focus();
             }}
             aria-label="Limpiar búsqueda"
-            className="text-ink-faint shrink-0"
+            className="text-ink-faint hover:text-ink-soft -mr-1 shrink-0 animate-[pop_0.25s_var(--ease-out-kit)_both] transition-colors"
           >
             <XCircleIcon size={20} weight="fill" />
           </button>
         )}
       </div>
 
-      <AnimatePresence initial={false}>
-        {error && (
-          <motion.p
-            key="error"
-            role="alert"
-            variants={blockVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springEnter}
-            className="text-footnote text-danger overflow-hidden px-1"
-          >
-            {error}
-          </motion.p>
+      <Reveal when={error} className="[--presence-gap:1rem]">
+        {(mensaje) => (
+          <p role="alert" className="text-footnote text-danger px-1">
+            {mensaje}
+          </p>
         )}
+      </Reveal>
 
-        {buscandoAlgo && (
-          <motion.div
-            key="resultados"
-            variants={blockVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springEnter}
-            className="overflow-hidden"
-          >
-            <Resultados
-              buscando={buscando}
-              resultados={resultados}
-              query={query}
-              yaEsta={yaEsta}
-              onElegir={(r) =>
-                void agregar({
-                  title: r.title,
-                  author: r.author,
-                  year: r.year,
-                  coverUrl: r.coverUrl,
-                  olid: r.olid,
-                })
-              }
-              onManual={() => void agregar({ title: query })}
-            />
-          </motion.div>
+      {/* Se le pasa todo lo que muestra, no solo "hay búsqueda": al elegir un
+          resultado el campo se vacía, y así el bloque se va con los
+          resultados puestos en vez de cambiar a "Escribí al menos tres
+          letras" mientras se cierra. */}
+      <Reveal
+        when={buscandoAlgo ? { query, buscando, resultados } : null}
+        className="[--presence-gap:1rem]"
+      >
+        {(b) => (
+          <Resultados
+            buscando={b.buscando}
+            resultados={b.resultados}
+            query={b.query}
+            yaEsta={yaEsta}
+            onElegir={(r) =>
+              void agregar({
+                title: r.title,
+                author: r.author,
+                year: r.year,
+                coverUrl: r.coverUrl,
+                olid: r.olid,
+              })
+            }
+            onManual={() => void agregar({ title: query })}
+          />
         )}
-      </AnimatePresence>
+      </Reveal>
 
       {shown.length === 0 ? (
         <EmptyState
@@ -244,31 +253,22 @@ export function Library({ books }: { books: Book[] }) {
         />
       ) : (
         <ListGroup footer="Mantené apretado para reordenar. Deslizá para editar o borrar.">
-          <Reorder.Group
-            axis="y"
-            values={ordenados}
-            onReorder={setOrdenLocal}
-            as="div"
-          >
-            {ordenados.map((book, i) => (
-              <Ficha
-                key={book.id}
-                book={book}
-                last={i === ordenados.length - 1}
-                arrastrando={arrastrando === book.id}
-                onArrastrar={(activo) => setArrastrando(activo ? book.id : null)}
-                onSoltar={() => {
-                  setArrastrando(null);
-                  // Se guarda el orden que quedó a la vista.
-                  void reorderBooks(ordenados.map((b) => b.id));
-                }}
-                onEdit={() => setEditando(book)}
-                onDelete={() =>
-                  run({ type: "delete", id: book.id }, () => deleteBook(book.id))
-                }
-              />
-            ))}
-          </Reorder.Group>
+          <div ref={container}>
+            <PresenceList items={ordenados} getKey={(book) => book.id}>
+              {(book, { last }) => (
+                <Ficha
+                  book={book}
+                  last={last}
+                  arrastrando={arrastrando === book.id}
+                  onPresion={(y) => start(book.id, y)}
+                  onEdit={() => setEditando(book)}
+                  onDelete={() =>
+                    run({ type: "delete", id: book.id }, () => deleteBook(book.id))
+                  }
+                />
+              )}
+            </PresenceList>
+          </div>
         </ListGroup>
       )}
 
@@ -300,21 +300,19 @@ function Ficha({
   book,
   last,
   arrastrando,
-  onArrastrar,
-  onSoltar,
+  onPresion,
   onEdit,
   onDelete,
 }: {
   book: Book;
   last: boolean;
   arrastrando: boolean;
-  onArrastrar: (activo: boolean) => void;
-  onSoltar: () => void;
+  /** Se sostuvo el dedo sin moverse: arranca el arrastre desde esa altura. */
+  onPresion: (clientY: number) => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const esAudio = book.format === "audiolibro";
-  const controles = useDragControls();
   const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inicio = useRef({ x: 0, y: 0 });
 
@@ -326,35 +324,31 @@ function Ficha({
   };
 
   return (
-    <Reorder.Item
-      value={book}
-      // El arrastre no lo dispara Motion: lo dispara la presión sostenida, para
-      // no robarle el gesto horizontal al swipe.
-      dragListener={false}
-      dragControls={controles}
-      onDragEnd={onSoltar}
-      transition={springLayout}
-      animate={{
-        scale: arrastrando ? 1.02 : 1,
-        boxShadow: arrastrando
-          ? "0 12px 32px rgb(27 28 25 / 0.18)"
-          : "0 0px 0px rgb(27 28 25 / 0)",
-      }}
-      style={{ position: "relative", zIndex: arrastrando ? 10 : 0 }}
+    // El arrastre no lo dispara el primer movimiento: lo dispara la presión
+    // sostenida, para no robarle el gesto horizontal al swipe.
+    <div
       onPointerDown={(e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
         inicio.current = { x: e.clientX, y: e.clientY };
+        const y = e.clientY;
         temporizador.current = setTimeout(() => {
-          onArrastrar(true);
-          controles.start(e);
+          temporizador.current = null;
+          onPresion(y);
         }, PRESION_MS);
       }}
       onPointerMove={(e) => {
         if (!temporizador.current) return;
-        // Si el dedo se fue en horizontal antes de tiempo, era un swipe.
-        if (Math.abs(e.clientX - inicio.current.x) > SLOP_PX) cancelarPresion();
+        // Si el dedo se fue antes de tiempo, era un swipe o un scroll.
+        if (
+          Math.abs(e.clientX - inicio.current.x) > SLOP_PX ||
+          Math.abs(e.clientY - inicio.current.y) > SLOP_PX
+        )
+          cancelarPresion();
       }}
       onPointerUp={cancelarPresion}
       onPointerCancel={cancelarPresion}
+      // Mantener apretado en el teléfono abre el menú contextual del sistema.
+      onContextMenu={(e) => e.preventDefault()}
     >
       <SwipeRow
         disabled={arrastrando}
@@ -373,14 +367,15 @@ function Ficha({
             "bg-card flex gap-3 px-4 py-3",
             !last && !arrastrando && "hairline-b",
             "[--hairline-inset:4.25rem]",
-            arrastrando && "cursor-grabbing select-none",
+            "transition-colors duration-200",
+            arrastrando && "bg-sand cursor-grabbing select-none",
           )}
         >
           <Portada url={book.cover_url} titulo={book.title} ancho={44} />
 
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <div className="min-w-0">
-              <h3 className="text-body line-clamp-1 font-medium">{book.title}</h3>
+              <h3 className="text-body line-clamp-1 font-semibold">{book.title}</h3>
               <p className="text-micro text-ink-faint truncate">
                 {[book.author, book.year, book.read_year ? `leído en ${book.read_year}` : null]
                   .filter(Boolean)
@@ -401,7 +396,7 @@ function Ficha({
           </div>
         </article>
       </SwipeRow>
-    </Reorder.Item>
+    </div>
   );
 }
 
@@ -423,7 +418,7 @@ function Resultados({
   const corta = query.trim().length < 3;
 
   return (
-    <div className="bg-card shadow-card flex flex-col overflow-hidden rounded-lg">
+    <div className="bg-card border-line flex flex-col overflow-hidden rounded-lg border">
       {corta ? (
         <p className="text-footnote text-ink-soft px-4 py-3">
           Escribí al menos tres letras.
@@ -459,7 +454,7 @@ function Resultados({
                 {repetido ? (
                   <span className="text-micro text-ink-faint shrink-0">Ya está</span>
                 ) : (
-                  <PlusIcon size={16} weight="bold" className="text-accent shrink-0" />
+                  <PlusIcon size={18} className="text-accent shrink-0" />
                 )}
               </button>
             );
@@ -472,8 +467,8 @@ function Resultados({
             onClick={onManual}
             className="hover:bg-card-sunken/60 active:bg-card-sunken flex w-full items-center gap-3 px-4 py-3 text-left transition-colors"
           >
-            <span className="bg-accent-wash text-accent grid size-9 shrink-0 place-items-center rounded-md">
-              <PlusIcon size={16} weight="bold" />
+            <span className="bg-accent-wash text-accent grid size-9 shrink-0 place-items-center rounded-full">
+              <PlusIcon size={18} />
             </span>
             <span className="text-subhead min-w-0 flex-1 truncate">
               {resultados?.length
@@ -504,7 +499,7 @@ function Portada({
       // rectangular y no va adentro de un IconChip. Lleva el acento igual: el
       // libro pertenece al módulo aunque falte la foto.
       <div
-        className="bg-accent-chip text-accent grid shrink-0 place-items-center rounded-md"
+        className="bg-accent-chip text-accent grid shrink-0 place-items-center rounded-xs"
         style={{ width: ancho, height: alto }}
         aria-hidden
       >
@@ -528,7 +523,7 @@ function Portada({
       // optimizar, y next/image solo permite dominios declarados de antemano.
       // Ahora la portada puede venir de donde sea, incluida una URL pegada a
       // mano en el editor.
-      className="bg-accent-wash shrink-0 rounded-md object-cover"
+      className="bg-accent-wash shrink-0 rounded-xs object-cover"
       style={{ width: ancho, height: alto }}
     />
   );

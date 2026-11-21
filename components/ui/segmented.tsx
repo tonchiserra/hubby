@@ -1,19 +1,14 @@
-"use client";
-
-import { useId } from "react";
-import { motion } from "motion/react";
-import { springIndicator } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type Segment<T extends string> = { value: T; label: string; count?: number };
 
 /**
- * Control segmentado de iOS: pista translúcida con una pastilla clara que marca
- * la opción activa.
+ * Control segmentado del kit: pista clara y una pastilla blanca que marca la
+ * opción activa.
  *
- * La pastilla es un único elemento con `layoutId`, así que al cambiar de opción
- * se desliza de una a otra en vez de desaparecer y reaparecer. Motion mide las
- * dos posiciones y anima entre ellas.
+ * La pastilla es un solo elemento que se desliza a la opción elegida. Su
+ * posición la fija CSS con `:has(input:checked)` (ver `.seg` en globals.css):
+ * no hay que medir nada ni cargar una librería de animación.
  *
  * Se implementa con radios reales para que funcione con teclado y lectores de
  * pantalla, no con botones sueltos.
@@ -23,46 +18,36 @@ export function Segmented<T extends string>({
   value,
   onChange,
   segments,
+  label = "Filtro",
   className,
 }: {
   name: string;
   value: T;
   onChange: (value: T) => void;
   segments: readonly Segment<T>[];
+  label?: string;
   className?: string;
 }) {
-  // El layoutId tiene que ser único por instancia: si dos controles compartieran
-  // el mismo, sus pastillas se animarían de uno al otro.
-  const layoutId = `segmented-${useId()}`;
-
   return (
     <div
       role="radiogroup"
-      aria-label="Filtro"
-      className={cn("bg-sand flex gap-0.5 rounded-lg p-0.5", className)}
+      aria-label={label}
+      className={cn("seg", className)}
+      style={{ "--seg-n": segments.length } as React.CSSProperties}
     >
+      <span className="seg-thumb" aria-hidden />
       {segments.map((s) => {
         const selected = s.value === value;
         return (
           <label
             key={s.value}
             className={cn(
-              "relative flex flex-1 cursor-pointer items-center justify-center gap-1.5",
-              "rounded-[7px] px-2 py-1.5 select-none",
-              "text-footnote font-semibold",
-              "has-[:focus-visible]:outline-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
-              "transition-colors duration-150",
-              selected ? "text-ink" : "text-ink-soft",
+              "relative flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2 select-none",
+              "text-footnote font-medium transition-colors duration-300 ease-out",
+              "has-[:focus-visible]:outline-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1",
+              selected ? "text-ink font-semibold" : "text-ink-soft hover:text-ink",
             )}
           >
-            {selected && (
-              <motion.span
-                layoutId={layoutId}
-                transition={springIndicator}
-                aria-hidden
-                className="bg-card absolute inset-0 rounded-[7px] shadow-[0_1px_3px_rgb(0_0_0/0.08)]"
-              />
-            )}
             <input
               type="radio"
               name={name}
@@ -71,13 +56,12 @@ export function Segmented<T extends string>({
               onChange={() => onChange(s.value)}
               className="sr-only"
             />
-            {/* Por encima de la pastilla, que va en el fondo. */}
-            <span className="relative">{s.label}</span>
+            <span>{s.label}</span>
             {s.count !== undefined && (
               <span
                 className={cn(
-                  "relative tabular-nums",
-                  selected ? "text-ink-soft" : "text-ink-faint",
+                  "tabular-nums transition-colors duration-300",
+                  selected ? "text-accent" : "text-ink-faint",
                 )}
               >
                 {s.count}

@@ -31,9 +31,9 @@ export default function SetupPage() {
   if (isSupabaseConfigured) redirect("/");
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center gap-8 px-6 py-12">
+    <main className="stagger-self mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center gap-8 px-6 py-12">
       <header className="flex flex-col gap-2">
-        <h1 className="text-display">Falta conectar Supabase</h1>
+        <h1 className="text-display display-tight">Falta conectar Supabase</h1>
         <p className="text-subhead text-ink-soft">
           hubby está listo, pero todavía no sabe dónde guardar los datos. Son
           cinco pasos y se hace una sola vez.
@@ -42,8 +42,8 @@ export default function SetupPage() {
 
       <ol className="flex flex-col gap-3">
         {STEPS.map((step, i) => (
-          <li key={step.title} className="bg-card flex gap-3 rounded-lg p-4">
-            <span className="bg-card-sunken text-accent grid size-6 shrink-0 place-items-center rounded-full text-caption font-semibold">
+          <li key={step.title} className="bg-card border-line flex gap-3 rounded-lg border p-4">
+            <span className="bg-accent-wash text-accent cifra grid size-7 shrink-0 place-items-center rounded-full text-footnote">
               {i + 1}
             </span>
             <div className="flex flex-col gap-0.5">

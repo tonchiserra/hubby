@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Icon } from "@phosphor-icons/react";
+import type { Icon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 const ACTION_WIDTH = 84;
@@ -46,6 +46,7 @@ export function SwipeRow({
   disabled?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const tray = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const startOffset = useRef(0);
   const offset = useRef(0);
@@ -60,6 +61,17 @@ export function SwipeRow({
     el.style.transition = animate ? EASE : "none";
     el.style.transform = `translate3d(${x}px,0,0)`;
     offset.current = x;
+    // Las acciones solo se ven mientras la fila está corrida. Quietas debajo
+    // del panel se colaban por el antialiasing de los bordes: una línea roja
+    // en cada fila en pantallas de 3x. Opacidad y no visibility, para que
+    // sigan en el orden del teclado. Al cerrar se apagan cuando la fila
+    // terminó de volver, no antes.
+    const actions = tray.current;
+    if (actions) {
+      const open = x < 0;
+      actions.style.transition = open || !animate ? "none" : "opacity 0s linear 260ms";
+      actions.style.opacity = open ? "1" : "0";
+    }
   };
 
   const close = () => place(0, true);
@@ -110,7 +122,16 @@ export function SwipeRow({
   return (
     <div className={cn("relative overflow-hidden", className)}>
       {/* Las acciones viven debajo y se descubren al deslizar. */}
-      <div className="absolute inset-y-0 right-0 flex">
+      <div
+        ref={tray}
+        className="absolute inset-y-0 right-0 flex opacity-0"
+        // Con el teclado no hay gesto: llegar con Tab a una acción abre la
+        // fila para que se vea qué se está por tocar, y salir la cierra.
+        onFocus={() => place(-openWidth, true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) close();
+        }}
+      >
         {actions.map((a) => (
           <button
             key={a.label}
@@ -122,12 +143,14 @@ export function SwipeRow({
             }}
             style={{ width: ACTION_WIDTH }}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 text-white",
-              a.tone === "destructive" ? "bg-danger" : "bg-card-sunken",
+              "flex flex-col items-center justify-center gap-0.5",
+              // Editar va en el acento: antes era blanco sobre el gris
+              // hundido, que en claro no se leía.
+              a.tone === "destructive" ? "bg-danger text-paper" : "bg-accent text-accent-ink",
             )}
           >
             <a.icon size={20} />
-            <span className="text-micro">{a.label}</span>
+            <span className="text-micro font-semibold">{a.label}</span>
           </button>
         ))}
       </div>

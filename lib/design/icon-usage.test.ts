@@ -20,6 +20,7 @@ const SIN_CHIP: Record<string, string> = {
   "components/hubby/list.tsx:CaretRightIcon": "afordancia de navegación",
   "components/hubby/page-header.tsx:ArrowLeftIcon": "afordancia de navegación",
   "components/hubby/module-card.tsx:ArrowUpRightIcon": "afordancia de navegación",
+  "components/ui/sheet.tsx:XIcon": "afordancia de cierre de la hoja",
   "app/(app)/deseos/wishlist.tsx:ArrowSquareOutIcon": "afordancia de navegación, sale de la app",
 
   // Íconos que son el dato o el estado de su propio control.

@@ -3,11 +3,13 @@ import { cn } from "@/lib/utils";
 
 const tag = cva(
   [
-    "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
+    // Las etiquetas del kit son rectas, con 4px de radio: lo redondo es lo
+    // que se toca, y una etiqueta solo informa.
+    "inline-flex items-center gap-1 rounded-xs px-1.5 py-0.5",
     // Mismo tamaño que el "FALTA" del supermercado: versalitas chicas, para
     // que la etiqueta informe sin competir con el título.
-    "text-[10px] leading-[14px] font-semibold tracking-wide uppercase",
-    "whitespace-nowrap",
+    "text-[10px] leading-[14px] font-semibold tracking-[0.06em] uppercase",
+    "whitespace-nowrap transition-colors duration-300",
   ],
   {
     variants: {

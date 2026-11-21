@@ -1,7 +1,10 @@
-import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { CaretRightIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
-/** Grupo de filas sobre una tarjeta que flota. */
+/**
+ * Grupo de filas sobre una tarjeta del kit: blanca, con borde y 10px de radio.
+ * El título es un rótulo -versalitas con el punto del acento-, no un `[/ … /]`.
+ */
 export function ListGroup({
   className,
   title,
@@ -18,15 +21,16 @@ export function ListGroup({
   return (
     <section className="flex flex-col">
       {(title || titleAction) && (
-        <div className="flex items-center justify-between gap-2 px-1 pb-2">
-          <h2 className="text-caption text-ink-soft truncate font-medium tracking-wide uppercase">
-            {title}
-          </h2>
+        <div className="flex min-h-8 items-center justify-between gap-2 px-1 pb-2">
+          {title ? <h2 className="eyebrow min-w-0 truncate">{title}</h2> : <span />}
           {titleAction}
         </div>
       )}
       <div
-        className={cn("bg-card shadow-card overflow-hidden rounded-lg", className)}
+        className={cn(
+          "bg-card border-line overflow-hidden rounded-lg border",
+          className,
+        )}
         {...props}
       >
         {children}
@@ -43,8 +47,11 @@ type ListRowProps = Omit<React.ComponentProps<"div">, "title"> & {
   trailing?: React.ReactNode;
   label: React.ReactNode;
   detail?: React.ReactNode;
+  /** Muestra el chevron y el estado de presión. */
   interactive?: boolean;
+  /** Oculta el hairline inferior. */
   last?: boolean;
+  /** Renderiza la fila como <button>. */
   asButton?: boolean;
 };
 
@@ -59,18 +66,16 @@ export function ListRow({
   className,
   ...props
 }: ListRowProps) {
-  // Una fila con onClick tiene que ser un botón: como div queda fuera del
-  // alcance del teclado y sin rol para lectores de pantalla.
   const Comp = (asButton ? "button" : "div") as "div";
+
   return (
     <Comp
       {...(asButton ? { type: "button" as const } : {})}
       className={cn(
         asButton && "w-full text-left",
-        // El padding derecho vive en el bloque de texto, no acá: así el
-        // separador puede dibujarse sobre ese bloque y llegar igual al borde.
-        "flex min-h-touch items-center gap-3 pl-5",
-        interactive && "hover:bg-card-sunken/60 active:bg-card-sunken transition-colors",
+        "flex min-h-touch items-center gap-3 pl-4",
+        (interactive || asButton) &&
+          "hover:bg-sand/70 active:bg-sand transition-colors duration-150",
         className,
       )}
       {...props}
@@ -82,14 +87,9 @@ export function ListRow({
           {leading}
         </div>
       )}
-
       <div
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-3 self-stretch py-3 pr-5",
-          // El separador arranca donde arranca el texto, no en el borde. Se
-          // dibuja sobre este bloque en vez de sobre la fila entera para que
-          // quede alineado con cualquier cosa que entre en `leading`, sin tener
-          // que adivinar cuánto mide.
+          "flex min-w-0 flex-1 items-center gap-3 self-stretch py-3 pr-4",
           !last && "hairline-b",
         )}
       >
@@ -99,14 +99,16 @@ export function ListRow({
             <div className="text-footnote text-ink-soft truncate">{detail}</div>
           )}
         </div>
-
         {trailing && (
           <div className="text-subhead text-ink-soft flex shrink-0 items-center gap-2 tabular-nums">
             {trailing}
           </div>
         )}
         {interactive && (
-          <CaretRightIcon size={13} weight="bold" className="text-ink-faint shrink-0" />
+          <CaretRightIcon
+            size={16}
+            className="text-ink-faint shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+          />
         )}
       </div>
     </Comp>

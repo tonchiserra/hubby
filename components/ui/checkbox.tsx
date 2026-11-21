@@ -1,40 +1,47 @@
-"use client";
-
-import { Checkbox as CheckboxPrimitive } from "radix-ui";
-import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 /**
- * Sigue la regla de color de hubby: **el color marca pertenencia**.
+ * Casilla redonda sobre un <input type="checkbox"> nativo: el rol, el teclado
+ * y el <label htmlFor> vienen del navegador. Reemplaza al Checkbox de Radix.
  *
- * La marca de "hecho" lleva el acento del módulo, no gris. Antes se apagaba
- * -la regla vieja decía que lo resuelto pierde color- y como el checkbox es el
- * control principal de Supermercado, esa pantalla terminaba monocromática con
- * el uso normal de la app. La urgencia la marcan el peso y el relleno, no la
- * ausencia de color.
+ * El input real va encima, transparente, y la caja se pinta con `peer`. La
+ * marca entra con un pequeño rebote.
  */
 export function Checkbox({
   className,
+  checked,
+  onCheckedChange,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: Omit<React.ComponentProps<"input">, "type" | "onChange"> & {
+  onCheckedChange?: (checked: boolean) => void;
+}) {
   return (
-    <CheckboxPrimitive.Root
-      className={cn(
-        "grid size-[22px] shrink-0 place-items-center rounded-full",
-        "border-[1.5px] border-line-strong transition-colors",
-        "data-[state=checked]:border-transparent data-[state=checked]:bg-accent-gradient",
-        "active:scale-90",
-        "focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2",
-        "disabled:opacity-40",
-        className,
-      )}
-      {...props}
-    >
-      {/* La marca va sobre el acento, así que usa su tinta -antes iba sobre
-          gris y por eso tomaba el color de la tarjeta. */}
-      <CheckboxPrimitive.Indicator className="text-accent-ink">
-        <CheckIcon size={12} weight="bold" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
+    <span className={cn("relative grid size-[22px] shrink-0 place-items-center", className)}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onCheckedChange?.(e.target.checked)}
+        className="peer absolute inset-0 m-0 cursor-pointer appearance-none rounded-full disabled:cursor-default"
+        {...props}
+      />
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none grid size-full place-items-center rounded-full",
+          "border-[1.5px] border-line-strong",
+          "transition-[background-color,border-color,transform] duration-200 ease-spring",
+          "peer-checked:border-transparent peer-checked:bg-accent",
+          "peer-active:scale-90",
+          "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent",
+          "peer-disabled:opacity-40",
+          "[&>svg]:scale-50 [&>svg]:opacity-0 peer-checked:[&>svg]:scale-100 peer-checked:[&>svg]:opacity-100",
+          "[&>svg]:transition-[transform,opacity] [&>svg]:duration-200 [&>svg]:ease-spring",
+        )}
+      >
+        {/* La marca va sobre el acento, así que usa su tinta. */}
+        <CheckIcon size={13} strokeWidth={2.4} className="text-accent-ink" />
+      </span>
+    </span>
   );
 }

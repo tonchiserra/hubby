@@ -1,7 +1,8 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { MoonIcon, SunIcon } from "@phosphor-icons/react/dist/ssr";
+import { MoonIcon, SunIcon } from "@/components/ui/icons";
+import { withViewTransition } from "@/lib/view-transition";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
@@ -14,7 +15,13 @@ export function ThemeToggle() {
       // La etiqueta nombra la acción y no el destino, así no depende del tema
       // activo -que en el servidor todavía no se conoce.
       aria-label="Cambiar tema"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      // El cambio de tema pasa adentro de una view transition: la pantalla
+      // entera funde de un modo al otro en vez de saltar.
+      onClick={() =>
+        withViewTransition(() =>
+          setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+        )
+      }
     >
       {/* Se renderizan los dos íconos y decide CSS según la clase .dark del
           <html>. Así el servidor y el cliente pintan lo mismo y no hace falta

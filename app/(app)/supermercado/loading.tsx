@@ -22,15 +22,15 @@ export default function Loading() {
         subtitle="Cargando…"
       />
 
-      <div className="bg-sand h-touch animate-pulse rounded-lg" />
-      <div className="bg-sand h-9 animate-pulse rounded-lg" />
+      <div className="h-touch skeleton rounded-full" />
+      <div className="h-[42px] skeleton rounded-full" />
 
-      <div className="bg-card shadow-card flex flex-col gap-4 rounded-lg p-5">
+      <div className="bg-card border-line border flex flex-col gap-4 rounded-lg p-5">
         {[0, 1, 2].map((i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="bg-sand size-[22px] shrink-0 animate-pulse rounded-full" />
+            <div className="size-[22px] shrink-0 skeleton rounded-full" />
             <div
-              className="bg-sand h-4 animate-pulse rounded"
+              className="h-4 skeleton rounded"
               style={{ width: `${60 - i * 12}%` }}
             />
           </div>

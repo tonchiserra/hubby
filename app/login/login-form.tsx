@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EyeIcon, EyeSlashIcon, SignInIcon } from "@phosphor-icons/react/dist/ssr";
+import { EyeIcon, EyeSlashIcon, SignInIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
+import { Reveal } from "@/components/hubby/presence";
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
@@ -23,6 +23,9 @@ export function LoginForm({ next }: { next: string }) {
     setPending(true);
     setError(null);
 
+    // El cliente de Supabase se carga recién al enviar: es la mayor parte del
+    // JS de esta pantalla y no hace falta para pintar el formulario.
+    const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -41,7 +44,7 @@ export function LoginForm({ next }: { next: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <Input
         name="email"
         type="email"
@@ -72,16 +75,18 @@ export function LoginForm({ next }: { next: string }) {
         </button>
       </div>
 
-      <Button type="submit" size="lg" block disabled={pending}>
-        <SignInIcon size={20} weight="bold" />
+      <Button type="submit" size="lg" block disabled={pending} className="mt-2">
+        <SignInIcon size={20} />
         {pending ? "Entrando…" : "Entrar"}
       </Button>
 
-      {error && (
-        <p role="alert" className="text-footnote text-danger px-1">
-          {error}
-        </p>
-      )}
+      <Reveal when={error}>
+        {(mensaje) => (
+          <p role="alert" className="text-footnote text-danger px-1 pt-1">
+            {mensaje}
+          </p>
+        )}
+      </Reveal>
     </form>
   );
 }

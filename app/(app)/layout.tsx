@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -20,8 +21,11 @@ export default function AppLayout({
   if (!isSupabaseConfigured) redirect("/setup");
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] md:py-12">
-      {children}
+    <main className="stagger mx-auto w-full max-w-4xl flex-1 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] md:py-12">
+      {/* Cada navegación entre el panel y un módulo es una view transition: la
+          página vieja se va hacia arriba y la nueva sube. El título de la
+          tarjeta se convierte en el del módulo (ver transition-names.ts). */}
+      <ViewTransition default="page">{children}</ViewTransition>
     </main>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { StarIcon } from "@phosphor-icons/react/dist/ssr";
+import { StarIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 const ESTRELLAS = [1, 2, 3, 4, 5];

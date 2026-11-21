@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { WarningIcon } from "@phosphor-icons/react/dist/ssr";
+import { WarningIcon } from "@/components/ui/icons";
 import { EmptyState } from "@/components/hubby/empty-state";
 import { Button } from "@/components/ui/button";
 

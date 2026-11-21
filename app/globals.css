@@ -4,9 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
-   Sistema visual de hubby
+   Sistema visual de hubby — UI Kit de COSRX AR (Innovate), como Platita
    ---------------------------------------------------------------------------
-   LA REGLA DE COLOR:
+   Ver docs/plans/2026-11-21-rediseno-cosrx-design.md.
+
+   LA REGLA DE COLOR sigue siendo la de agosto:
 
        El color no marca urgencia: marca pertenencia.
 
@@ -14,56 +16,80 @@
        la marcan el peso y el relleno -sólido contra lavado-, no la presencia
        o ausencia de color.
 
-   La versión anterior decía "el color marca lo que reclama atención", y eso lo
-   volvía raro por construcción: si solo aparece cuando algo reclama atención,
-   y casi nunca reclama nada, las pantallas quedan grises. Ese fue exactamente
-   el reclamo que hundió los tres rediseños anteriores.
+   Lo que cambia es el material. La UI es clara, como en Platita: fondo blanco,
+   bloques en el gris producto del kit, tarjetas blancas con borde y el negro
+   del kit solo para el texto. No hay bloques grandes de color ni negros: el
+   acento va en los detalles (íconos, marcas, focos, el contador sólido) y en
+   el botón principal, nunca de fondo.
 
-   El color va en los detalles -íconos, estrellas, focos, marcas- y NUNCA en el
-   fondo de la pantalla. Los fondos teñidos se descartaron explícitamente.
-
-   El terracota queda reservado para lo destructivo. No para "falta algo": que
-   falte leche no es un error, es el estado normal del que trata la app.
+   El rojo del kit queda reservado para lo destructivo. Que falte leche no es
+   un error, es el estado normal del que trata la app.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Papel y tinta. El lienzo es blanco roto cálido, no gris ni blanco puro:
-     es lo que comparten las tres referencias y lo que da la temperatura. */
-  --paper: #f3f2ed;
-  --card: #ffffff;
-  --card-sunken: #eceae3;
+  /* ---------- Marca (UI Kit) ---------- */
+  --color-negro: #231f20;
+  --color-blanco: #ffffff;
+  --color-gris-producto: #f3f2ef;
+  --color-gris-claro: #ececec;
+  --color-texto-secundario: #6b6766;
+  --color-texto-terciario: #8a8685;
+  --color-borde: #e6e6e3;
+  --color-borde-fuerte: #cfcdca;
+  --color-error: #d6272e;
+  /* El verde de hubby ocupa el lugar que el kit le da al amarillo, como el
+     azul en Platita. Es el salvia aprobado en agosto: pasa AA con blanco
+     encima (5:1), así que sirve para botones y para texto. */
+  --color-salvia: #4a7a5b;
 
-  --ink: #1b1c19;
-  --ink-soft: #6f716a;
-  --ink-faint: #a2a49a;
+  /* ---------- Capa semántica: lo único que lee un componente ---------- */
+  --paper: var(--color-blanco);
+  --card: var(--color-blanco);
+  --card-sunken: var(--color-gris-producto);
 
-  --line: #e4e3da;
-  --line-strong: #d3d2c7;
+  --ink: var(--color-negro);
+  --ink-soft: var(--color-texto-secundario);
+  --ink-faint: var(--color-texto-terciario);
 
-  /* Arena: segundo tono cálido de la paleta. Es el que llevan los campos, la
-     pista del segmentado y los contenedores de ícono, para que las superficies
-     neutras no sean todas del mismo gris. Sale de los círculos beige que tienen
-     las referencias detrás de cada ícono. */
-  --sand: #e9e4d6;
-  --sand-deep: #ddd6c3;
+  --line: var(--color-borde);
+  --line-strong: var(--color-borde-fuerte);
 
-  /* El acento, uno solo para toda la app. Se probó darle el suyo a cada módulo
-     y el resultado fue una app de colores sueltos: el verde salvia es la
-     identidad de hubby, no la del supermercado. */
-  --accent: #4a7a5b;
+  /* Bloques: campos, pista del segmentado, el hueco de una portada. */
+  --sand: var(--color-gris-producto);
+  --sand-deep: var(--color-gris-claro);
+
+  --accent: var(--color-salvia);
   --accent-hover: #3f6a4e;
-  --accent-ink: #ffffff;
-  --accent-wash: #e4ede6;
+  --accent-ink: var(--color-blanco);
+  --accent-wash: #e8f0ea;
+  --accent-wash-strong: #d5e4d9;
 
-  /* Destructivo. Terracota, no rojo de alarma: pertenece a la paleta. */
-  --danger: #a8503a;
-  --danger-wash: #f2e3dd;
+  --danger: var(--color-error);
+  --danger-wash: #fcebe9;
 
-  --shadow-card: 0 1px 2px rgb(27 28 25 / 0.03), 0 10px 30px rgb(27 28 25 / 0.05);
-  --shadow-float: 0 4px 10px rgb(27 28 25 / 0.05), 0 20px 50px rgb(27 28 25 / 0.09);
+  /* El segmentado es una pista clara con la pastilla blanca. */
+  --seg-thumb: var(--color-blanco);
+  --seg-thumb-shadow: 0 1px 2px rgb(35 31 32 / 0.12), 0 2px 8px rgb(35 31 32 / 0.08);
+
+  --overlay: rgb(35 31 32 / 0.45);
+
+  /* Las tarjetas llevan borde, no sombra. La sombra queda para lo que flota. */
+  --shadow-card: 0 0 0 1px var(--line);
+  --shadow-hover: 0 30px 40px -30px rgb(35 31 32 / 0.3);
+  --shadow-float: 0 4px 12px rgb(0 0 0 / 0.15);
+
+  /* ---------- Movimiento ---------- */
+  --t-rapida: 0.15s;
+  --t-base: 0.25s;
+  --t-panel: 0.45s;
+  --ease-out-kit: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring-kit: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-panel-kit: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* Los hairlines son un píxel físico, no CSS: en retina eso es 1/2 o 1/3. */
   --dpr: 1;
+
+  color-scheme: light;
 }
 
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
@@ -73,32 +99,41 @@
   :root { --dpr: 3; }
 }
 
+/* El oscuro no está en el kit: se deriva igual que en Platita. El negro de la
+   marca pasa a ser la página y el gris producto pasa a ser la tinta. */
 .dark {
-  /* El oscuro también es cálido: se apaga el papel, no se cambia de material. */
-  --paper: #151613;
-  --card: #1e201c;
-  --card-sunken: #121310;
+  --paper: #141213;
+  --card: #1c191a;
+  --card-sunken: #242021;
 
-  --ink: #f2f1eb;
-  --ink-soft: #9b9d93;
-  --ink-faint: #6b6d64;
+  --ink: #f3f2ef;
+  --ink-soft: #b9b5b3;
+  --ink-faint: #8a8685;
 
-  --line: #2b2d28;
-  --line-strong: #3a3c36;
+  --line: #332f30;
+  --line-strong: #4a4647;
 
-  --sand: #2a2721;
-  --sand-deep: #35312a;
+  --sand: #242021;
+  --sand-deep: #2c2829;
 
   --accent: #7cb28c;
   --accent-hover: #8dc09c;
   --accent-ink: #12200f;
-  --accent-wash: #22301f;
+  --accent-wash: #1c2a20;
+  --accent-wash-strong: #26392b;
 
-  --danger: #d2775c;
-  --danger-wash: #33211b;
+  --danger: #ff6b6b;
+  --danger-wash: #331b19;
 
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.35);
-  --shadow-float: 0 4px 8px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.45);
+  --seg-thumb: #3a3536;
+  --seg-thumb-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+
+  --overlay: rgb(0 0 0 / 0.6);
+
+  --shadow-hover: 0 30px 40px -30px rgb(0 0 0 / 0.7);
+  --shadow-float: 0 4px 16px rgb(0 0 0 / 0.5);
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -116,18 +151,25 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-ink: var(--accent-ink);
   --color-accent-wash: var(--accent-wash);
+  --color-accent-wash-strong: var(--accent-wash-strong);
   --color-danger: var(--danger);
   --color-danger-wash: var(--danger-wash);
 
   --shadow-card: var(--shadow-card);
+  --shadow-hover: var(--shadow-hover);
   --shadow-float: var(--shadow-float);
 
+  --ease-out: var(--ease-out-kit);
+  --ease-spring: var(--ease-spring-kit);
+  --ease-panel: var(--ease-panel-kit);
+
   /* --- Tipografía -------------------------------------------------------
-     Instrument Sans tiene ejes de peso Y de ancho. Eso permite hacer toda la
-     jerarquía con una sola familia: los títulos van condensados y con peso,
-     el cuerpo en ancho normal. Una tipografía, dos ejes, cero necesidad de
-     una segunda familia. */
-  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+     Reemplazos libres de las fuentes con licencia del kit, los mismos que en
+     Platita: Hanken Grotesk por Maison Neue para el texto, y Mona Sans por
+     Maison Neue Extended, expandida para los titulares y en bold a ancho
+     normal para las cifras. */
+  --font-sans: var(--font-hanken), "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-mona), "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   --text-micro: 0.6875rem;
@@ -139,7 +181,7 @@
   --text-subhead: 0.9375rem;
   --text-subhead--line-height: 1.3125rem;
   --text-body: 1rem;
-  --text-body--line-height: 1.4rem;
+  --text-body--line-height: 1.45rem;
   --text-headline: 1.0625rem;
   --text-headline--line-height: 1.375rem;
   --text-headline--font-weight: 600;
@@ -151,18 +193,22 @@
   --text-title2--font-weight: 600;
   --text-title1: 1.875rem;
   --text-title1--line-height: 2.125rem;
-  --text-title1--font-weight: 700;
-  --text-display: 2.375rem;
-  --text-display--line-height: 2.5rem;
-  --text-display--font-weight: 700;
+  --text-title1--font-weight: 600;
+  /* El titular del kit escala con la pantalla: en el teléfono "Supermercado"
+     expandido tiene que entrar en una línea. */
+  --text-display: clamp(1.875rem, 3.7vw, 3rem);
+  --text-display--line-height: 1.1;
+  --text-display--font-weight: 600;
 
   /* --- Forma -------------------------------------------------------------
-     Radios generosos: de acá sale lo "amigable". El chip del ícono es
-     completamente redondo y es la pieza que más se repite en la app. */
-  --radius-sm: 0.625rem;
-  --radius-md: 0.875rem;
-  --radius-lg: 1.375rem;
-  --radius-xl: 1.75rem;
+     Recto para la estructura, redondo para lo que se toca o flota: botones,
+     campos, chips y segmentados son píldoras; tarjetas de 10px; etiquetas de
+     4px. */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 1rem;
 
   --spacing-touch: 2.75rem;
 }
@@ -171,11 +217,15 @@
   html {
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
+    /* Deja transicionar alturas a y desde `auto`. */
+    interpolate-size: allow-keywords;
   }
 
   body {
     @apply bg-paper text-ink font-sans text-body antialiased;
     overscroll-behavior-y: none;
+    /* En Hanken las cifras son tabulares por defecto: nada baila al cambiar. */
+    font-variant-numeric: tabular-nums;
   }
 
   :focus-visible {
@@ -186,27 +236,63 @@
      Preflight ahora respeta el default del navegador, que es la flecha. Se
      restituye acá y no botón por botón, porque en la app no hay un solo
      elemento clickeable que deba mostrar otra cosa.
+
      Los deshabilitados quedan afuera: ahí la flecha ES la información. */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
     cursor: pointer;
   }
 
-  /* Las cifras nunca bailan al actualizarse. */
   :where(output, [data-numeric]) {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* Títulos condensados: el eje de ancho es de dónde sale el carácter sin
-   sumar una segunda tipografía. */
+/* Titulares: Mona Sans expandida, el Maison Neue Extended del kit. */
 @utility display-tight {
-  font-stretch: 88%;
-  letter-spacing: -0.022em;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  letter-spacing: -0.01em;
+}
+
+/* Cifras importantes en bold (pedido de Gonzalo en Platita): la misma familia
+   de los titulares, a ancho normal para que entre en el teléfono. */
+@utility cifra {
+  font-family: var(--font-display);
+  font-stretch: 100%;
+  font-weight: 700;
+  /* Proporcionales, como en Platita: las tabulares de Mona Sans traen el
+     cero con punto, que en un precio se lee técnico. */
+  font-variant-numeric: proportional-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Rótulo sobre una sección: versalitas chicas con un punto del acento. El
+   formato `[/ … /]` del kit se descartó en Platita. */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+
+  &::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--accent);
+  }
 }
 
 @utility hairline-b {
   position: relative;
+
   &::after {
     content: "";
     position: absolute;
@@ -220,23 +306,330 @@
   }
 }
 
-/* Degradado del chip: la pieza más repetida del sistema. Muy lavado, porque
-   detrás del chip siempre hay un ícono que tiene que leerse. */
-@utility bg-accent-chip {
-  background-image: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--accent), transparent 82%),
-    color-mix(in oklab, var(--accent), transparent 93%)
-  );
+/* Campo de formulario del kit: subrayado, y al enfocarlo la línea del acento
+   crece desde el centro. Los buscadores de los módulos son otra pieza: una
+   píldora gris (ver los `bg-sand rounded-full` de cada pantalla). */
+@utility field {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  border-radius: 0;
+  background-color: transparent;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 50% 100%;
+  background-size: 0% 2px;
+  color: var(--ink);
+  font-size: 1rem;
+  appearance: none;
+  transition:
+    border-color var(--t-base),
+    background-size 0.35s var(--ease-out-kit);
+
+  &:hover {
+    border-bottom-color: var(--ink-soft);
+  }
+  &:focus-visible {
+    outline: none;
+    background-size: 100% 2px;
+  }
+  &::placeholder {
+    color: var(--ink-faint);
+  }
+  &[aria-invalid="true"] {
+    border-bottom-color: var(--danger);
+  }
+  &:is(select) {
+    padding-right: 28px;
+    background-image:
+      linear-gradient(var(--accent), var(--accent)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238A8685' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat;
+    background-position: 50% 100%, right 6px center;
+    background-size: 0% 2px, auto;
+    cursor: pointer;
+  }
+  &:is(select):focus-visible {
+    background-size: 100% 2px, auto;
+  }
 }
 
-/* Degradado del botón primario y del contador. Sutil a propósito: si se nota
-   que es un degradado, está mal calibrado. */
+/* El chip del ícono: un círculo lavado del acento con el ícono a plena
+   fuerza. Es la pieza que más se repite y la que dice de qué módulo es algo.
+   El kit es plano, así que se fueron los degradados. */
+@utility bg-accent-chip {
+  background-color: var(--accent-wash);
+}
+
+/* El botón principal y el contador: el acento sólido, plano. */
 @utility bg-accent-gradient {
-  background-image: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--accent), white 14%),
-    var(--accent) 62%,
-    color-mix(in oklab, var(--accent), black 7%)
-  );
+  background-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Movimiento
+   ---------------------------------------------------------------------------
+   Todo cambio de estado se anima, con las curvas y duraciones de arriba, y
+   todo se detiene con prefers-reduced-motion. Reemplaza a `motion`: entradas
+   y salidas de filas (`Presence`), la pastilla del segmentado, la hoja y las
+   transiciones de página son CSS y View Transitions.
+--------------------------------------------------------------------------- */
+
+/* Transiciones de página: <ViewTransition default="page"> en app/(app)/layout. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+}
+::view-transition-old(.page) {
+  animation: vt-page-out 0.18s var(--ease-out-kit) both;
+}
+::view-transition-new(.page) {
+  animation: vt-page-in 0.38s var(--ease-out-kit) both;
+}
+@keyframes vt-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes vt-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* El título de la tarjeta del panel se convierte en el título del módulo. */
+::view-transition-group(*) {
+  animation-timing-function: var(--ease-out-kit);
+}
+
+/* Los bloques de una pantalla suben al entrar, escalonados. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* `.stagger` va en el <main>: anima los bloques de la página que tenga adentro. */
+.stagger > * > * {
+  animation: rise 0.55s var(--ease-out-kit) both;
+}
+.stagger > * > :nth-child(2) { animation-delay: 50ms; }
+.stagger > * > :nth-child(3) { animation-delay: 100ms; }
+.stagger > * > :nth-child(4) { animation-delay: 150ms; }
+.stagger > * > :nth-child(5) { animation-delay: 200ms; }
+.stagger > * > :nth-child(n + 6) { animation-delay: 250ms; }
+
+/* Las pantallas sueltas (login, setup) no cuelgan del <main> de (app):
+   escalonan sus propios hijos. */
+.stagger-self > * {
+  animation: rise 0.55s var(--ease-out-kit) both;
+}
+.stagger-self > :nth-child(2) { animation-delay: 80ms; }
+.stagger-self > :nth-child(n + 3) { animation-delay: 160ms; }
+
+/* Presencia: filas y bloques que entran y salen. La altura viaja entre 0fr y
+   1fr, así lo de abajo acompaña en vez de saltar. Solo animan los que llegan
+   después del primer pintado: una lista de 200 productos no se despliega
+   fila por fila al abrir la pantalla. */
+.presence {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.presence > * {
+  min-height: 0;
+  overflow: hidden;
+}
+.presence[data-enter] {
+  animation: presence-in 0.32s var(--ease-out-kit);
+}
+.presence[data-leaving] {
+  animation: presence-out 0.26s var(--ease-out-kit) forwards;
+  pointer-events: none;
+}
+/* Un bloque suelto dentro de un `flex gap-*` declara ese gap en
+   --presence-gap: colapsado se lo come con un margen negativo, así al
+   desmontarse no queda un salto del tamaño del gap. */
+@keyframes presence-in {
+  from {
+    grid-template-rows: 0fr;
+    margin-top: calc(var(--presence-gap, 0px) * -1);
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes presence-out {
+  to {
+    grid-template-rows: 0fr;
+    margin-top: calc(var(--presence-gap, 0px) * -1);
+    opacity: 0;
+  }
+}
+
+/* Acordeones nativos: abren y cierran con su altura. */
+details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    block-size 0.35s var(--ease-out-kit),
+    opacity 0.3s ease,
+    content-visibility 0.35s allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
+/* Esqueletos: brillan en vez de parpadear. */
+.skeleton {
+  background: linear-gradient(100deg, var(--sand) 30%, var(--sand-deep) 50%, var(--sand) 70%);
+  background-size: 250% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Hoja: <dialog> nativo. Abajo en el teléfono, modal desde 760px.
+--------------------------------------------------------------------------- */
+.sheet {
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(92dvh, 900px);
+  padding: 0;
+  border: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--card);
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: var(--shadow-float);
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--t-base),
+    transform var(--t-panel) var(--ease-panel-kit),
+    overlay var(--t-base) allow-discrete,
+    display var(--t-base) allow-discrete;
+}
+.sheet[open] {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  .sheet[open] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+.sheet::backdrop {
+  background: var(--overlay);
+  opacity: 0;
+  transition:
+    opacity var(--t-base),
+    overlay var(--t-base) allow-discrete,
+    display var(--t-base) allow-discrete;
+}
+.sheet[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+.sheet[open] .sheet-body,
+.sheet[open] .sheet-head {
+  animation: fade 0.35s var(--ease-out-kit) 0.05s both;
+}
+@media (min-width: 760px) {
+  .sheet {
+    margin: auto;
+    width: min(520px, calc(100% - 32px));
+    border-radius: var(--radius-lg);
+  }
+  .sheet[data-narrow] {
+    width: min(400px, calc(100% - 32px));
+  }
+  .sheet-grip {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Segmentado: pastillas iguales y una pastilla que se desliza a la elegida.
+   La posición la fija el radio marcado, con :has(), sin JS.
+--------------------------------------------------------------------------- */
+.seg {
+  --seg-i: 0;
+  --seg-n: 2;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--sand);
+}
+.seg-thumb {
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / var(--seg-n));
+  border-radius: 999px;
+  background: var(--seg-thumb);
+  box-shadow: var(--seg-thumb-shadow);
+  transform: translateX(calc(var(--seg-i) * 100%));
+  transition: transform 0.38s var(--ease-out-kit);
+}
+.seg:has(> label:nth-of-type(2) input:checked) { --seg-i: 1; }
+.seg:has(> label:nth-of-type(3) input:checked) { --seg-i: 2; }
+.seg:has(> label:nth-of-type(4) input:checked) { --seg-i: 3; }
+.seg:has(> label:nth-of-type(5) input:checked) { --seg-i: 4; }
+
+/* ---------------------------------------------------------------------------
+   Movimiento reducido: nada se desplaza. Las animaciones duran un instante en
+   vez de desaparecer, para que `animationend` siga llegando y una fila que
+   sale se desmonte igual.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

@@ -1,4 +1,4 @@
-import type { Icon } from "@phosphor-icons/react";
+import type { Icon } from "@/components/ui/icons";
 
 /**
  * Metadata de un módulo. A propósito NO incluye su resumen de panel: este

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { MoonIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react/dist/ssr";
+import { MoonIcon, SignOutIcon, UserIcon } from "@/components/ui/icons";
 
 import { PageHeader } from "@/components/hubby/page-header";
 import { ListGroup, ListRow } from "@/components/hubby/list";

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeftIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 /**
- * El título va condensado con el eje de ancho de Instrument Sans. Ese
- * estrechamiento es de dónde sale el carácter sin sumar una segunda familia
- * ni una gota de color.
+ * Encabezado de pantalla. El título es el titular del kit: Mona Sans
+ * expandida. La vuelta al menú es una píldora, porque es lo único que se toca
+ * del encabezado y la app no tiene otra navegación.
  */
 export function PageHeader({
   title,
@@ -24,14 +24,20 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header className={cn("flex flex-col gap-3", className)}>
+    <header className={cn("flex flex-col gap-4", className)}>
       {back && (
         <Link
           href={back.href}
           aria-label={back.label ?? "Volver al menú principal"}
-          className="text-ink-soft hover:text-ink -ml-1 inline-flex w-fit items-center gap-1.5 text-footnote transition-colors"
+          className={cn(
+            "bg-sand text-ink-soft hover:text-ink group inline-flex h-8 w-fit items-center gap-1.5 rounded-full pr-3.5 pl-2.5",
+            "text-footnote font-medium transition-colors duration-200",
+          )}
         >
-          <ArrowLeftIcon size={15} weight="bold" />
+          <ArrowLeftIcon
+            size={16}
+            className="transition-transform duration-200 ease-out group-hover:-translate-x-0.5"
+          />
           Menú
         </Link>
       )}
@@ -45,7 +51,7 @@ export function PageHeader({
             {title}
           </h1>
           {subtitle && (
-            <p className="text-subhead text-ink-soft mt-1">{subtitle}</p>
+            <p className="text-subhead text-ink-soft mt-1.5">{subtitle}</p>
           )}
         </div>
         {action && <div className="shrink-0">{action}</div>}

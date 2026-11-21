@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { MotionConfig } from "motion/react";
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 
-/** Debe coincidir con --background de cada modo en globals.css. */
-const CHROME_COLOR = { light: "#f3f2ed", dark: "#151613" } as const;
+/** Debe coincidir con --paper de cada modo en globals.css. */
+const CHROME_COLOR = { light: "#ffffff", dark: "#141213" } as const;
 
 /**
  * Mantiene <meta name="theme-color"> en sincronía con el tema activo. Sin esto,
@@ -43,9 +42,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <ThemeColorSync />
-      {/* reducedMotion="user" respeta la preferencia del sistema: quien la
-          tenga activada recibe cambios instantáneos en vez de movimiento. */}
-      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      {children}
     </NextThemesProvider>
   );
 }
